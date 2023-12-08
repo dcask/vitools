@@ -1,0 +1,12 @@
+[workspace]
+restore_data_on_startup = True
+save_data_on_exit = True
+save_history = True
+save_non_project_files = False
+project_type = 'empty-project-type'
+recent_files = ['main.py', 'dbaccess.py', 'apitool.py', 'constants.py', 'tabpanel.py', 'loginwindow.py', 'viplatform.py', 'vilicense.py', 'userTab.py', 'viutils.py', 'vitools.ini']
+
+[main]
+version = 0.2.0
+recent_files = []
+

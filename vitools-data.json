@@ -1,0 +1,24 @@
+{
+    "request0": {
+        "METHOD": "GET",
+        "ENDPOINT": "/viqube/version",
+        "HEADERS": {
+            "Content-Type": "application/json",
+            "X-API-VERSION": "3.12",
+            "Authorization": "[TOKEN]"
+        },
+        "BODY": {}
+    },
+    "save user": {
+        "METHOD": "POST",
+        "ENDPOINT": "/viqube/version/something",
+        "HEADERS": {
+            "Content-Type": "application/json",
+            "X-API-VERSION": "3.10",
+            "Authorization": "[TOKEN]"
+        },
+        "BODY": {
+            "user": "pol"
+        }
+    }
+}
