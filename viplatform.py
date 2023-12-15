@@ -6,7 +6,6 @@ Created on Fri Dec  1 09:07:42 2023
 """
 import requests
 import constants
-# import pandas as pd
 from pandas import DataFrame, read_excel
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -276,3 +275,41 @@ class ViPlatform():
             print(self.errorText)
             self.hasError=True
         return not self.hasError,response
+#--------------------удалить пользователя----------------------        
+    def getLokiDashboardRequests(self, start, end, since, apikey):
+        step=round(2.5*since+1,0)
+        querystring = {
+            "direction":"BACKWARD",
+            "limit":"1000",
+            "query":"{component=\"dashboard-service\"} |=\"Произошел запрос на просмотр дашборда\"",
+            "start": start*1000000000,
+            "end": end*1000000000,
+            "step":step
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer "+self.userToken
+        }
+        lokiheaders = {
+            "Content-Type": "text/html",
+            "Authorization": "Bearer "+apikey
+            }
+        response={}
+        dashboards = {}
+        try:
+            ok,response = self.sendRequest("GET",'/admin/api/dashboards', headers, querystring)
+            if ok:
+                for dashboard in response.json():
+                    dashboards[dashboard['_id']]=dashboard['Name']
+            else:
+                raise Exception(response.text)
+
+            response = requests.get(self.baseURL+'/grafana/api/datasources/proxy/1/loki/api/v1/query_range', headers=lokiheaders, params=querystring,verify=False)
+            if not response.ok:
+                raise Exception(response.text)
+        except Exception as e:
+            self.errorText=str(e)
+            # print(self.errorText) 
+            self.hasError=True
+            raise e
+        return dashboards,response

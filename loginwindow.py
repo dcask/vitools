@@ -7,7 +7,7 @@ Created on Thu Nov 30 21:57:53 2023
 
 
 import constants
-
+from json import load, dump
 from PyQt5.QtWidgets import QComboBox, QDialog, QWidget,  QVBoxLayout, QLabel, QGridLayout, QLineEdit, QPushButton
 from PyQt5 import QtGui
 from PyQt5.QtCore import QSize
@@ -34,6 +34,7 @@ class ViLogin(QDialog):
         self.urlLabel.setText(constants.VI_LOGIN_URL_LABEL)
 
         self.urlInput = QComboBox() #QLineEdit()
+        self.urlInput.currentTextChanged.connect(self.on_combobox_changed)
         # self.urlInput..setEditText(constants.VI_LOGIN_URL)#.setPlaceholderText(constants.VI_LOGIN_URL)
         self.urlInput.setEditable(True)
         #Login field
@@ -63,12 +64,21 @@ class ViLogin(QDialog):
         self.groupLayout.addWidget(self.passwordInput, 2, 1, 1, 1)  
         self.groupLayout.addWidget(self.loginButton, 3, 1, 1, 1)
         
-        self.centralwidgetLayout.addWidget(self.groupWidget)
-        with open('vitools.ini','a+') as f:
+        
+        with open('vitools.json', 'a+') as f:
             pass
-        with open('vitools.ini','r') as f:
-            self.urldata=f.read().splitlines()
-            self.urlInput.addItems(self.urldata)
+        with open('vitools.json','r') as f:
+            try:
+                self.urldata=load(f)
+                self.urlInput.addItems([x for x in self.urldata])
+            except :
+                self.urldata={}
+        self.centralwidgetLayout.addWidget(self.groupWidget)
+        # with open('vitools.ini','a+') as f:
+        #     pass
+        # with open('vitools.ini','r') as f:
+        #     self.urldata=f.read().splitlines()
+        #     self.urlInput.addItems(self.urldata)
         if not len(self.urldata):
             self.urlInput.addItems([constants.VI_LOGIN_URL])
         
@@ -78,9 +88,9 @@ class ViLogin(QDialog):
         self.username=self.loginInput.text().strip()
         self.password=self.passwordInput.text().strip()
         
-        # self.baseURL="https://dcask.visiology.su"
-        # self.username="admin"
-        # self.password="Og4u3gj76"
+        self.baseURL="https://example.visiology.su"
+        self.username="dcask"
+        self.password="JustaJoke78"
         
         if self.baseURL=='' or self.username=='' or self.password=='':
             return
@@ -90,7 +100,15 @@ class ViLogin(QDialog):
         
         self.accept()
     def saveURL(self):
+        
         if self.baseURL not in self.urldata:
-            print(self.baseURL,self.urldata)
-            with open('vitools.ini','a') as f:
-                f.writelines([self.baseURL+'\n'])
+            self.urldata[self.baseURL]={'LOKI':''}
+        self.urldata[self.baseURL]['user']=self.username
+            # print(self.baseURL,self.urldata)
+            # with open('vitools.ini','a') as f:
+            #     f.writelines([self.baseURL+'\n'])
+        with open('vitools.json', 'w', encoding='utf-8') as f:
+            dump(self.urldata, f, ensure_ascii=False, indent=4)
+    def on_combobox_changed(self):
+        if self.urlInput.currentText() in self.urldata:
+            self.loginInput.setText(self.urldata[self.urlInput.currentText()]['user'])

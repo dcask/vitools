@@ -16,7 +16,6 @@ except Exception:
     base_path = os.path.abspath(".")
 
 
-
 VI_SERTIFICATE_VERIFY=False
 
 VI_WINDOW_WIDTH=400
@@ -28,6 +27,7 @@ VI_TABPANEL_TAB1_NAME="API"
 VI_TABPANEL_TAB2_NAME="Пользователи"
 VI_TABPANEL_TAB3_NAME="Лицензия"
 VI_TABPANEL_TAB4_NAME="Доступ к базам"
+VI_TABPANEL_TAB5_NAME="Просмотры"
 VI_TABPANEL_LOADER=os.path.join(base_path, "images\\loader.gif")
 VI_TABPANEL_REFRESH="Перезагрузить"
 VI_TABPANEL_ERROR_LINK="Ошибка связывания"
@@ -75,5 +75,8 @@ VI_API_SAVE_BUTTON="Сохранить"
 VI_API_HEADER_ERROR="Некорректный json в заголовках\n"
 VI_API_BODY_ERROR="Некорректный json в теле запроса\n"
 
-
-
+VI_LOKI_KEY_LABEL="LOKI API KEY"
+VI_LOKI_SINCE_LABEL="Часов в выборке"
+VI_LOKI_SAVE="Save to XLS"
+VI_LOKI_REFRESH="Reload"
+VI_USER_SAVEAS_LABEL="Сохранить как"

@@ -39,12 +39,10 @@ class MainWindow(QMainWindow):
         if not loginDlg.exec(): 
             self.close()
         else:
-            # self.loader.show()
             if viplatform.init(loginDlg.username, loginDlg.password, loginDlg.baseURL):
                 loginDlg.saveURL()
                 self.clickRefresh()
-                # self.loader.stopAnimation()
-                
+            
             else:
                 viutils.throwError(viplatform.visiology.errorText)
                 QTimer.singleShot(10, self.login)
@@ -58,7 +56,6 @@ class MainWindow(QMainWindow):
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
-        # self.worker.progress.connect(self.reportProgress)
         self.thread.start()
         
         self.thread.finished.connect(
@@ -71,7 +68,7 @@ class MainWindow(QMainWindow):
     def show(self):
         QMainWindow.show(self)
         QTimer.singleShot(0, self.login)
-#------- main routine
+#------- main routine ---------------------------------------------------------
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     mainWin = MainWindow()

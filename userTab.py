@@ -86,10 +86,11 @@ class TableModel(QAbstractTableModel):
 class ViUserTab(QWidget):
     def __init__(self, parent): 
         super(QWidget, self).__init__(parent)
-        self.lineEdit       = QLineEdit()
+        
         self.view           = QTableView()
         self.view.setWordWrap(True)
         self.view.setSortingEnabled(True)
+        self.lineEdit       = QLineEdit()
         self.comboBox       = QComboBox()
         self.label          = QLabel()
         self.label.setText(constants.VI_USER_FIND_LABEL)
@@ -141,7 +142,7 @@ class ViUserTab(QWidget):
         self.view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
         self.view.setSelectionMode(QAbstractItemView.MultiSelection)
-    
+        self.verticalHeader = self.view.verticalHeader()
     
     @pyqtSlot(str)
     def on_lineEdit_textChanged(self, text):
@@ -159,7 +160,7 @@ class ViUserTab(QWidget):
         self.proxy.setFilterKeyColumn(index)
         
     def init(self):
-        data=[]
+        
         self.view.reset()
 
         translate={'UserName':'Логин', 'useLdap':'LDAP', 'GivenName':'Имя',
@@ -170,7 +171,7 @@ class ViUserTab(QWidget):
                    'IsBlocked':'Блок', 'LastLogin':'Последний вход', 'Created':'Создан'
                    }
         headers=[]
-        
+        data=[]
         for u in viplatform.visiology.userList:
             if not u["IsInfrastructure"]:
                 u['Roles']=', '.join(u['Roles'])
@@ -179,7 +180,10 @@ class ViUserTab(QWidget):
                 for key in u:
                     if key in translate:
                         headers.append(translate[key])
-                        d.append(u[key])
+                        if key in ['LastLogin', 'Created']:
+                            d.append(str(u[key]).replace('T',' ').replace('Z',''))
+                        else:
+                            d.append(u[key])
                 data.append(d)
         # print(data)
         # headers = [translate[key] for key in viplatform.visiology.userList[0]]
@@ -205,11 +209,11 @@ class ViUserTab(QWidget):
         
         self.horizontalHeader = self.view.horizontalHeader()
         self.horizontalHeader.setSectionsClickable(True)
-        self.horizontalHeader.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        self.horizontalHeader.setSectionResizeMode(6, QHeaderView.Stretch)
-        self.horizontalHeader.setSectionResizeMode(7, QHeaderView.ResizeToContents)
-        self.horizontalHeader.setSectionResizeMode(8, QHeaderView.ResizeToContents)
-        self.horizontalHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
+        # self.horizontalHeader.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        # self.horizontalHeader.setSectionResizeMode(6, QHeaderView.ResizeToContents) #Stretch)
+        # self.horizontalHeader.setSectionResizeMode(7, QHeaderView.ResizeToContents)
+        # self.horizontalHeader.setSectionResizeMode(8, QHeaderView.ResizeToContents)
+        # self.horizontalHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
         self.horizontalHeader.setStyleSheet("QHeaderView::section \
                                         {\
                                              background-color: #abe7ab; \
@@ -218,9 +222,14 @@ class ViUserTab(QWidget):
                                               border-bottom:1px inset #91eb91;\
                                              }")
         self.total.setText(str(self.view.model().rowCount())+constants.VI_USER_OF_LABEL+str(len(viplatform.visiology.userList)))
-        # for index,value in enumerate(headers):
-        #     if value in ['LDAP','Лицензируется']:
-        #         self.horizontalHeader.setSectionResizeMode(index, QHeaderView.ResizeToContents)
+        
+        # self.resizeRowsToContents()
+        
+        self.verticalHeader.setSectionResizeMode( QHeaderView.ResizeToContents)
+        for index,value in enumerate(headers):
+            # if value in ['LDAP','Лицензируется']:
+                self.horizontalHeader.setSectionResizeMode(index, QHeaderView.ResizeToContents)
+        self.horizontalHeader.setSectionResizeMode(6, QHeaderView.Stretch)
         # self.horizontalHeader.setSectionResizeMode(0, QHeaderView.Stretch)
         # self.horizontalHeader.setSectionResizeMode(1, QHeaderView.ResizeToContents)
         # self.horizontalHeade.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
@@ -230,6 +239,10 @@ class ViUserTab(QWidget):
         #     if h not in displayHeaders:
         #         self.view.hideRow(i)
         #         print (h)
+        # self.view.resizeRowsToContents()
+        self.view.resizeColumnsToContents()
+        # self.view.update()
+        # self.view.repaint()
 #------------------- save------------------------
     def clickSave(self):
         options = QFileDialog.Options()
@@ -302,3 +315,10 @@ class ViUserTab(QWidget):
         self.thread.finished.connect(
             lambda: self.init()
         )
+#---------------------------------------
+    # def resizeRowsToContents(self):
+        
+    #     # self.verticalHeader.setSectionResizeMode( QHeaderView.Stretch)
+    #     for row in range(self.view.model().rowCount()):
+    #             hint = self.view.sizeHintForRow(row)
+    #             self.verticalHeader.resizeSection(row, hint)
