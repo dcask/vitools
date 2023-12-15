@@ -21,7 +21,7 @@ VI_SERTIFICATE_VERIFY=False
 VI_WINDOW_WIDTH=400
 VI_WINDOW_HEIGHT=320
 VI_WINDOW_ICON_PATH=os.path.join(base_path, 'images\\logo.png')
-VI_WINDOW_NAME="viTools"
+VI_WINDOW_NAME="viTools 1.01"
 
 VI_TABPANEL_TAB1_NAME="API"
 VI_TABPANEL_TAB2_NAME="Пользователи"
@@ -33,12 +33,12 @@ VI_TABPANEL_REFRESH="Перезагрузить"
 VI_TABPANEL_ERROR_LINK="Ошибка связывания"
 
 VI_USER_FIND_LABEL="Найти в "
-VI_USER_LOAD='Load xls'
-VI_USER_SAVE='Save xls'
-VI_USER_SELECT='Select all'
-VI_USER_DESELECT='UnSelect all'
-VI_USER_DEACTIVATE='Deactivate selected'
-VI_USER_DELETE='Delete selected'
+VI_USER_LOAD='Загрузить XLS'
+VI_USER_SAVE='Сохранить XLS'
+VI_USER_SELECT='Выбрать всё'
+VI_USER_DESELECT='Отменить выбор'
+VI_USER_DEACTIVATE='Деактивировать выбранных'
+VI_USER_DELETE='Удалить выбранных'
 VI_USER_SAVEAS_LABEL="Сохранить как"
 VI_USER_LOADAS_LABEL="Загрузить"
 VI_USER_TOTAL_LABEL="Показано "
@@ -70,13 +70,15 @@ VI_API_HEADERS_LABEL="Заголовки"
 VI_API_BODY_LABEL="Тело запроса"
 VI_API_OUTPUT_LABEL="Ответ"
 VI_API_REFRESH_BUTTON="Обновить токен"
+VI_API_EXPORT_BUTTON="Выгрузить"
 VI_API_SEND_BUTTON="Отправить"
 VI_API_SAVE_BUTTON="Сохранить"
 VI_API_HEADER_ERROR="Некорректный json в заголовках\n"
 VI_API_BODY_ERROR="Некорректный json в теле запроса\n"
 
+
 VI_LOKI_KEY_LABEL="LOKI API KEY"
 VI_LOKI_SINCE_LABEL="Часов в выборке"
-VI_LOKI_SAVE="Save to XLS"
-VI_LOKI_REFRESH="Reload"
+VI_LOKI_SAVE="Сохранить в XLS"
+VI_LOKI_REFRESH="Перезагрузить"
 VI_USER_SAVEAS_LABEL="Сохранить как"

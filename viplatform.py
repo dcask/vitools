@@ -263,17 +263,17 @@ class ViPlatform():
     def sendRequest(self, req_type, rq_url, rq_headers, req_payload):
         self.hasError=False
         try:
-            # print(req_type, rq_url,rq_headers, req_payload)
+            print(req_type, rq_url,rq_headers, req_payload)
             response = requests.request(req_type, self.baseURL+rq_url,
                                         json=req_payload, headers=rq_headers, verify=False)
             
             if response.status_code!=200:
-                # response={"error":response.text}
-                self.hasError=True
+                raise Exception(response.text)
         except Exception as e:
             self.errorText=str(e)
             print(self.errorText)
             self.hasError=True
+            # raise e
         return not self.hasError,response
 #--------------------удалить пользователя----------------------        
     def getLokiDashboardRequests(self, start, end, since, apikey):

@@ -10,7 +10,7 @@ import constants
 from json import load, dump
 from PyQt5.QtWidgets import QComboBox, QDialog, QWidget,  QVBoxLayout, QLabel, QGridLayout, QLineEdit, QPushButton
 from PyQt5 import QtGui
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, Qt
 
 class ViLogin(QDialog):
     def __init__(self, parent): 
@@ -19,7 +19,7 @@ class ViLogin(QDialog):
         self.password=''
         self.username=''
         self.granted=False
-        
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint,False)
         self.setWindowTitle(constants.VI_LOGIN_TITLE)
         self.setWindowIcon(QtGui.QIcon(constants.VI_WINDOW_ICON_PATH))
         self.setMinimumSize(QSize(constants.VI_LOGIN_WINDOW_WIDTH, constants.VI_LOGIN_WINDOW_HEIGHT))
@@ -35,7 +35,7 @@ class ViLogin(QDialog):
 
         self.urlInput = QComboBox() #QLineEdit()
         self.urlInput.currentTextChanged.connect(self.on_combobox_changed)
-        # self.urlInput..setEditText(constants.VI_LOGIN_URL)#.setPlaceholderText(constants.VI_LOGIN_URL)
+
         self.urlInput.setEditable(True)
         #Login field
         self.loginLabel = QLabel()
@@ -87,11 +87,7 @@ class ViLogin(QDialog):
         self.baseURL=self.urlInput.currentText().strip()
         self.username=self.loginInput.text().strip()
         self.password=self.passwordInput.text().strip()
-        
-        self.baseURL="https://example.visiology.su"
-        self.username="dcask"
-        self.password="JustaJoke78"
-        
+      
         if self.baseURL=='' or self.username=='' or self.password=='':
             return
         
@@ -104,9 +100,7 @@ class ViLogin(QDialog):
         if self.baseURL not in self.urldata:
             self.urldata[self.baseURL]={'LOKI':''}
         self.urldata[self.baseURL]['user']=self.username
-            # print(self.baseURL,self.urldata)
-            # with open('vitools.ini','a') as f:
-            #     f.writelines([self.baseURL+'\n'])
+
         with open('vitools.json', 'w', encoding='utf-8') as f:
             dump(self.urldata, f, ensure_ascii=False, indent=4)
     def on_combobox_changed(self):

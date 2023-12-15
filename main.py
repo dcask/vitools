@@ -36,6 +36,7 @@ class MainWindow(QMainWindow):
     #-------------------- press login ------------------
     def login(self):
         loginDlg = ViLogin(self)
+
         if not loginDlg.exec(): 
             self.close()
         else:

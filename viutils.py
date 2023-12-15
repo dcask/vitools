@@ -19,7 +19,7 @@ def throwError(message):
     msg.setText("Error")
     msg.setInformativeText(message) 
     msg.setWindowTitle("Error")
-    msg.setWindowIcon(QIcon(constants.img))
+    msg.setWindowIcon(QIcon(constants.VI_WINDOW_ICON_PATH))
     msg.exec_()
     
 def throwInfo(message):
@@ -28,7 +28,7 @@ def throwInfo(message):
     msg.setText("Done")
     msg.setInformativeText(message)
     msg.setWindowTitle("Done")
-    msg.setWindowIcon(QIcon(constants.img))
+    msg.setWindowIcon(QIcon(constants.VI_WINDOW_ICON_PATH))
     msg.exec_()
     
 class Worker(QObject):
