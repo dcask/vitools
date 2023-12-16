@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['main.py', 'dbaccess.py', 'apitool.py', 'constants.py', 'tabpanel.py', 'loginwindow.py', 'viplatform.py', 'vilicense.py', 'userTab.py', 'viutils.py', 'lokitab.py']
+recent_files = ['main.py', 'tabpanel.py', 'viplatform.py', 'userTab.py', 'lokitab.py', 'loginwindow.py', 'apitool.py']
 
 [main]
 version = 0.2.0

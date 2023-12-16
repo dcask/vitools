@@ -74,11 +74,6 @@ class ViLogin(QDialog):
             except :
                 self.urldata={}
         self.centralwidgetLayout.addWidget(self.groupWidget)
-        # with open('vitools.ini','a+') as f:
-        #     pass
-        # with open('vitools.ini','r') as f:
-        #     self.urldata=f.read().splitlines()
-        #     self.urlInput.addItems(self.urldata)
         if not len(self.urldata):
             self.urlInput.addItems([constants.VI_LOGIN_URL])
         

@@ -135,7 +135,7 @@ class ViApiTab(QWidget):
         if ok:
             string=dumps(response.json(), indent=2)
             # print( string)
-            self.outputEdit.setText(string)
+            self.outputEdit.setText(string.encode('utf-8').decode('unicode_escape'))
         else:
             self.outputEdit.setText(response.text)
         

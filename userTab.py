@@ -302,11 +302,12 @@ class ViUserTab(QWidget):
     def refresh(self):
         self.loader= viutils.LoadingGif(self)
         self.thread = QThread()
-        self.worker = viutils.Worker()
+        self.worker = viutils.WorkerUser()
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.catcherror.connect(viutils.throwError)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.start()
         self.thread.finished.connect(

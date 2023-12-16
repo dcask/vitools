@@ -51,11 +51,36 @@ class MainWindow(QMainWindow):
 
         self.loader= viutils.LoadingGif(self)
         self.thread = QThread()
-        self.worker = viutils.Worker()
-        self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
+        self.workerToken = viutils.WorkerToken()
+        self.workerUser = viutils.WorkerUser()
+        self.workerLicence = viutils.WorkerLicence()
+        self.workerLoki = viutils.WorkerLoki()
+        self.workerToken.moveToThread(self.thread)
+        self.workerUser.moveToThread(self.thread)
+        self.workerLicence.moveToThread(self.thread)
+        self.workerLoki.moveToThread(self.thread)
+        
+        self.thread.started.connect(self.workerToken.run)
+        self.thread.started.connect(self.workerUser.run)
+        self.thread.started.connect(self.workerLicence.run)
+        self.thread.started.connect(self.workerLoki.run)
+        
+        self.workerToken.finished.connect(self.thread.quit)
+        self.workerToken.finished.connect(self.workerToken.deleteLater)
+        self.workerToken.catcherror.connect(viutils.throwError)
+        
+        self.workerUser.finished.connect(self.thread.quit)
+        self.workerUser.finished.connect(self.workerUser.deleteLater)
+        self.workerUser.catcherror.connect(viutils.throwError)
+        
+        self.workerLicence.finished.connect(self.thread.quit)
+        self.workerLicence.finished.connect(self.workerLicence.deleteLater)
+        self.workerLicence.catcherror.connect(viutils.throwError)
+        
+        self.workerLoki.finished.connect(self.thread.quit)
+        self.workerLoki.finished.connect(self.workerLoki.deleteLater)
+        self.workerLoki.catcherror.connect(viutils.throwError)
+        
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.start()
         

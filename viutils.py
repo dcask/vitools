@@ -31,20 +31,53 @@ def throwInfo(message):
     msg.setWindowIcon(QIcon(constants.VI_WINDOW_ICON_PATH))
     msg.exec_()
     
-class Worker(QObject):
+class WorkerUser(QObject):
     finished = pyqtSignal()
-    progress = pyqtSignal(int)
+    catcherror = pyqtSignal(str)
 
     def run(self):
-        viplatform.visiology.clearData()
+        # viplatform.visiology.clearData()
+        if viplatform.visiology.checkPlatform():
+            viplatform.visiology.getUsers()
+        if viplatform.visiology.hasError:
+            self.catcherror.emit(viplatform.visiology.errorText) 
+        self.finished.emit()
+
+class WorkerToken(QObject):
+    finished = pyqtSignal()
+    catcherror = pyqtSignal(str)
+
+    def run(self):
+        # viplatform.visiology.clearData()
         if viplatform.visiology.checkPlatform():
             viplatform.visiology.getToken()
-            viplatform.visiology.getUsers()
-            viplatform.visiology.getLicense()
-        else:
-            throwError(viplatform.visiology.errorText) 
+        if viplatform.visiology.hasError:
+            self.catcherror.emit(viplatform.visiology.errorText) 
         self.finished.emit()
-  
+class WorkerLicence(QObject):
+    finished = pyqtSignal()
+    catcherror = pyqtSignal(str)
+
+    def run(self):
+        # viplatform.visiology.clearData()
+        if viplatform.visiology.checkPlatform():
+            viplatform.visiology.getLicense()
+        if viplatform.visiology.hasError:
+            self.catcherror.emit(viplatform.visiology.errorText) 
+        self.finished.emit()
+
+class WorkerLoki(QObject):
+    finished = pyqtSignal()
+    catcherror = pyqtSignal(str)
+
+    def run(self):
+        # viplatform.visiology.clearData()
+        if viplatform.visiology.checkPlatform():
+            viplatform.visiology.getLokiDashboardRequests()
+        if viplatform.visiology.hasError:
+            self.catcherror.emit(viplatform.visiology.errorText) 
+        self.finished.emit()
+        
 class LoadingGif(QWidget): 
   
     def __init__(self, parent):

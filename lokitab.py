@@ -10,7 +10,6 @@ import constants
 import viplatform
 import viutils
 from pandas import DataFrame
-from json import load, dump
 # from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QWidget,QTableView, QLabel, QGridLayout, QLineEdit, QPushButton
 from PyQt5.QtWidgets import QHeaderView
@@ -18,7 +17,7 @@ from PyQt5.QtWidgets import QComboBox, QFileDialog, QSpinBox
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QAbstractTableModel, QThread
 from PyQt5.QtCore import QVariant, pyqtSlot, QRegExp#, QModelIndex
 from PyQt5.QtGui import QColor, QBrush
-from time import time
+
 from re import search
 from json import loads 
 
@@ -34,8 +33,6 @@ class LokiTableModel(QAbstractTableModel):
 
         if role == Qt.DisplayRole:
             value = self._data[index.row()][index.column()]
-            # if isinstance(value, bool):
-            #     return ('Нет','Да')[value]
             return value
         if role == Qt.BackgroundRole:
             row = index.row()
@@ -55,7 +52,6 @@ class LokiTableModel(QAbstractTableModel):
         self.layoutChanged.emit()
 
     def columnCount(self, index):
-        # return len(self._data[0])
         return len(self.hheaders)
     
     
@@ -76,8 +72,7 @@ class ViLokiTab(QWidget):
         self.since      = QSpinBox()
         self.since.setValue(24)
         
-        
-        # self.lokiKey.setText("eyJrIjoiVjZOakhMV0JqYjRrNGxUVDFlWVRwUkRqVVl0OFBIamUiLCJuIjoiZGNhc2tsb2tpIiwiaWQiOjF9")
+        #eyJrIjoiVjZOakhMV0JqYjRrNGxUVDFlWVRwUkRqVVl0OFBIamUiLCJuIjoiZGNhc2tsb2tpIiwiaWQiOjF9
         self.view           = QTableView()
         self.view.setSortingEnabled(True)
         
@@ -137,15 +132,7 @@ class ViLokiTab(QWidget):
         self.proxy.setFilterKeyColumn(index)
     def init(self):
         if self.lokiKey.text()=='':
-            with open('vitools.json','r') as f:
-                try:
-                    urldata=load(f)
-                except :
-                    urldata={}
-            if viplatform.visiology.baseURL in urldata:
-                self.lokiKey.setText(urldata[viplatform.visiology.baseURL]['LOKI'])
-            # else:
-            #     self.lokiKey.setText('')
+            self.lokiKey.setText(viplatform.visiology.lokiApiKey)
         self.view.reset()
         self.loadLoki()
         
@@ -177,19 +164,22 @@ class ViLokiTab(QWidget):
     def clickSave(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getSaveFileName(self,constants.VI_USER_SAVEAS_LABEL,""," Text Files (*.xlsx)", options=options)
+        fileName, _ = QFileDialog.getSaveFileName(self,constants.VI_USER_SAVEAS_LABEL,"",
+                                                  " Text Files (*.xlsx)", options=options)
         if fileName:
             if fileName[:-5] !='.xlsx': fileName+='.xlsx'
             self.saveLokiExcel(fileName, "Sheet1")
 #--------------------refresh---------------------------
     def refresh(self):
+        viplatform.visiology.lokiApiKey=self.lokiKey.text()
         self.loader= viutils.LoadingGif(self)
         self.thread = QThread()
-        self.worker = viutils.Worker()
+        self.worker = viutils.WorkerLoki()
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.catcherror.connect(viutils.throwError)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.start()
         self.thread.finished.connect(
@@ -198,6 +188,7 @@ class ViLokiTab(QWidget):
         self.thread.finished.connect(
             lambda: self.init()
         )
+
 #-------------------------- save excel -------------------------
     def saveLokiExcel(self, excel_filename, sheet_name):
         df = DataFrame(self.data)
@@ -207,24 +198,11 @@ class ViLokiTab(QWidget):
         self.data=[]
         if self.lokiKey.text()=='':
             return
-        end = int(time())
-        start = end-int(self.since.text())*3600
-        dashboards,response=viplatform.visiology.getLokiDashboardRequests(start,end,int(self.since.value()),self.lokiKey.text())
-        
-        if response.ok:
-            #save to config file
-            with open('vitools.json','r') as f:
-                try:
-                    urldata=load(f)
-                except :
-                    urldata={}
-            urldata[viplatform.visiology.baseURL]['LOKI']=self.lokiKey.text()
-            with open('vitools.json', 'w', encoding='utf-8') as f:
-                dump(urldata, f, ensure_ascii=False, indent=4)        
-            jsonresult=response.json()
+
+        if len(viplatform.visiology.dash_views):
             regtemplate=r'{.*}'
-            for r in jsonresult["data"]["result"]:
-                if len(jsonresult["data"]["result"])>0:
+            for r in viplatform.visiology.dash_views["data"]["result"]:
+                if len(viplatform.visiology.dash_views["data"]["result"])>0:
                     for value in r["values"]:
                         v=loads(value[1])
                         d = search(regtemplate,v['log'])
@@ -233,5 +211,7 @@ class ViLokiTab(QWidget):
                             result = dict((a.strip(), b.strip()[1:-1])  
                                       for a, b in (element.split(': ')  
                                                   for element in p.split(', ')))
-                            self.data.append([v['time'].replace('T',' ').replace('Z',''),dashboards[result['DashboardGuid']],result['DashboardGuid'],result['UserLogin']])
+                            self.data.append([v['time'].replace('T',' ').replace('Z',''),
+                                              viplatform.visiology.dashboards[result['DashboardGuid']],
+                                              result['DashboardGuid'],result['UserLogin']])
                             
