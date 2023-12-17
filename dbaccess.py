@@ -27,7 +27,7 @@ class ViDbAccessTab(QWidget):
         self.rolesLabel.setText(constants.VI_ACCESS_ROLES_LABEL)
         
         self.combo_box = QComboBox()
-        
+        self.combo_box.currentTextChanged.connect(self.on_combobox_changed)
         #DB list
         self.scrollArea = QScrollArea(self)
         self.scrollArea.setWidgetResizable(True)
@@ -79,3 +79,12 @@ class ViDbAccessTab(QWidget):
             self.scrollAreaWidgetLayout.insertWidget(count, cb)
             self.checkBoxList.append(cb)
         self.linkButton.setEnabled(True)
+        
+    def on_combobox_changed(self):
+        t=self.combo_box.currentText()
+        for role in viplatform.visiology.db_roles:
+            if t==role['role']:
+                for d in role['databases']:
+                    for c in self.checkBoxList:
+                        if c.text()==d['dataBase']:
+                            c.setChecked(True)

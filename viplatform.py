@@ -40,6 +40,7 @@ class ViPlatform():
     def clearData(self):  
         self.since=24
         self.userToken=''
+        self.db_roles=[]
         self.apiVersion=''
         self.errorText=''
         self.headers={}
@@ -116,6 +117,7 @@ class ViPlatform():
             "databases": dbList
         }
         ok, response=self.sendRequest("PUT", '/viqube/accessrights/roledb', self.headers, payload)
+        self.getDatabases()
         return ok
 # ----------------------------- get databases ---------------
     def getDatabases(self) -> list:
@@ -125,6 +127,9 @@ class ViPlatform():
             dbs = response.json()
             for db in dbs:
                 databases.append(db['name'])
+        ok, response = self.sendRequest('GET','/viqube/accessrights/roledb',self.headers)
+        if ok:
+            self.db_roles = response.json()
         return databases
 #------------------------- get license -------------------------
     def getLicense(self):
