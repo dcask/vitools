@@ -79,11 +79,16 @@ class WorkerLoki(QObject):
         self.finished.emit()
         
 class LoadingGif(QWidget): 
-  
+    
     def __init__(self, parent):
-        super().__init__()
+        super(QWidget, self).__init__(parent)
         self.setFixedSize(50,50)
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.CustomizeWindowHint)
+        geo = self.geometry()
+        geo.moveCenter(parent.geometry().center())
+        self.setGeometry(geo)
+        
+        
         self.label_animation = QLabel(self)
         self.movie = QMovie(constants.VI_TABPANEL_LOADER) 
         self.label_animation.setMovie(self.movie) 
@@ -96,3 +101,7 @@ class LoadingGif(QWidget):
     def stopAnimation(self): 
         self.movie.stop()
         self.close()
+    
+    # def sho(self): 
+    #         self.movie.stop()
+    #         self.close()

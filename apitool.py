@@ -7,18 +7,21 @@ Created on Tue Dec  5 22:19:05 2023
 
 import constants
 import viplatform
+# from viutils import LoadingGif
 from pandas import DataFrame
 
+# from PyQt5.QtCore import pyqtSignal
 from viutils import throwError
 from json import loads, dumps, dump, load
 from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QLineEdit, QPushButton
 from PyQt5.QtWidgets import QComboBox, QTextEdit, QFileDialog
 from PyQt5.QtWidgets import QPlainTextEdit, QAction, QMenu
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt#, QThread
 
 class ViApiTab(QWidget):
     def __init__(self, parent): 
         super(QWidget, self).__init__(parent)
+        # self.finished = pyqtSignal()
         
         self.comboBox       = QComboBox()
         self.comboBox.setEditable(True)
@@ -125,19 +128,49 @@ class ViApiTab(QWidget):
         self.tokenEdit.setText(str(viplatform.visiology.userToken))
         
     def clickSend(self):
-
+        # self.loader= LoadingGif(self.parent)
+        
+        # self.thread = QThread()
+        # # self.worker= viutils.WorkerToken()
+        # self.loader.moveToThread(self.thread)
+                
+        # self.thread.started.connect(self.loader.show)
+        
+        
+        # self.finished.connect(self.thread.quit)
+        # self.finished.connect(self.workerToken.deleteLater)
+        # self.catcherror.connect(viutils.throwError)
+        
+          
+        # self.thread.finished.connect(self.thread.deleteLater)
+        # self.thread.start()
+        self.sendApiRequest()
+        
+        # self.thread.finished.connect(
+        #     lambda: self.viTabPanel.init()
+        # )
+        # self.thread.finished.connect(
+        #     lambda: self.loader.stopAnimation()
+        # )
+        # self.thread.quit()
+        
+    def sendApiRequest(self):
+        
+        # catcherror = pyqtSignal(str)
         data=self.grabData()
+        viplatform.visiology.timeout_value=100
         ok, response=viplatform.visiology.sendRequest(data["METHOD"],
                                                         data["ENDPOINT"],
                                                         data["HEADERS"],
                                                         data["BODY"])
-                                                        
+        viplatform.visiology.timeout_value=10                                                
         if ok:
             string=dumps(response.json(), indent=2)
             # print( string)
             self.outputEdit.setText(string.encode('utf-8').decode('unicode_escape'))
         else:
             self.outputEdit.setText(response.text)
+        # self.finished.emit()
         
     def clickSave(self):
              

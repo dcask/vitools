@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
                 QTimer.singleShot(10, self.login)
     def clickRefresh(self):
 
-        self.loader= viutils.LoadingGif(self)
+        self.loader= viutils.LoadingGif(self.centralwidget)
         self.thread = QThread()
         self.workerToken = viutils.WorkerToken()
         self.workerUser = viutils.WorkerUser()

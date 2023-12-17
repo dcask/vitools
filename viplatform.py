@@ -34,6 +34,7 @@ class ViPlatform():
         self. password=''
         self.lokiApiKey=''
         self.user=''
+        self.timeout_value=10
         self.clearData()
 #------------clear data-----------------------------
     def clearData(self):  
@@ -53,7 +54,6 @@ class ViPlatform():
         self.password=password
         self.user=username
         self.baseURL=baseUrl
-        print('here')
         with open('vitools.json','r') as f:
             try:
                 urldata=load(f)
@@ -334,7 +334,8 @@ class ViPlatform():
         try:
 
             response = requests.request(req_type, self.baseURL+rq_url,
-                                        data=req_payload, headers=rq_headers, verify=False)
+                                        data=req_payload, headers=rq_headers, verify=False,
+                                        timeout=self.timeout_value)
             response.encoding = 'utf-8'
             if response.status_code!=200:
                 raise Exception(response.text)
