@@ -158,7 +158,7 @@ class ViUserTab(QWidget):
     @pyqtSlot(int)
     def on_comboBox_currentIndexChanged(self, index):
         self.proxy.setFilterKeyColumn(index)
-        
+    
     def init(self):
         
         self.view.reset()
@@ -259,8 +259,8 @@ class ViUserTab(QWidget):
         if fileName:
             if not viplatform.visiology.loadExcel(fileName, "Sheet1"):
                 viutils.throwError(viplatform.visiology.errorText)
-            else:
-                viutils.throwInfo("Загружено")
+            # else:
+            #     viutils.throwInfo("Загружено")
         
         self.refresh()
         self.total.setText(str(self.view.model().rowCount())+constants.VI_USER_OF_LABEL+str(len(viplatform.visiology.userList)))
@@ -286,9 +286,9 @@ class ViUserTab(QWidget):
             if not viplatform.visiology.removeUser(val):
                 error_val+=val+";"
                 f=False
-        if f:
-            viutils.throwInfo("Успешно")
-        else:
+        if not f:
+            # viutils.throwInfo("Успешно")
+        # else:
             viutils.throwError(error_val +" "+ viplatform.visiology.errorText)
         self.refresh()
         self.total.setText(str(self.view.model().rowCount())+constants.VI_USER_OF_LABEL+str(len(viplatform.visiology.userList)))
@@ -303,9 +303,9 @@ class ViUserTab(QWidget):
                 error_val+=val+";"
                 f=False
         
-        if f:
-            viutils.throwInfo("Успешно")
-        else:
+        if not f:
+        #     viutils.throwInfo("Успешно")
+        # else:
             viutils.throwError(error_val +" "+ viplatform.visiology.errorText)
             
         self.refresh()

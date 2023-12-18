@@ -102,7 +102,7 @@ class ViApiTab(QWidget):
         self.gridLayout.setRowStretch(6, 1)
         self.gridLayout.setRowStretch(7, 4)
         
-        
+        self.endpointEdit.setText("/viqube/version")
         self.setLayout(self.gridLayout)
         
         with open('vitools-data.json', 'a+') as f:
@@ -116,9 +116,9 @@ class ViApiTab(QWidget):
         # print(self.tooltip)
         
     def init(self):
-        self.endpointEdit.setText("/viqube/version")
+        
         h = dict(viplatform.visiology.headers)
-        h['Authorization'] = "["+constants.VI_API_TOKEN_LABEL+"]"
+        h['Authorization']=h['Authorization'].replace(viplatform.visiology.userToken,"["+constants.VI_API_TOKEN_LABEL+"]")
         self.headerEdit.setText(dumps(h, indent=2))
         self.tokenEdit.setText(viplatform.visiology.userToken)
         self.bodyEdit.setPlainText("body")
@@ -153,41 +153,44 @@ class ViApiTab(QWidget):
         #     lambda: self.loader.stopAnimation()
         # )
         # self.thread.quit()
-        
+    def refreshView(self):
+        self.tokenEdit.setText(viplatform.visiology.userToken)    
     def sendApiRequest(self):
         
         # catcherror = pyqtSignal(str)
         data=self.grabData()
-        viplatform.visiology.timeout_value=100
-        ok, response=viplatform.visiology.sendJSON(data["METHOD"],
-                                                        data["ENDPOINT"],
-                                                        data["HEADERS"],
-                                                        data["BODY"])
-        viplatform.visiology.timeout_value=10                                                
-        if ok:
-            string=constants.VI_API_EMPTY
-            try:
-                string=dumps(response.json(), indent=2).encode('utf-8').decode('unicode_escape')
+        if "CORRECT" in data:
+            viplatform.visiology.timeout_value=100
+            ok, response=viplatform.visiology.sendJSON(data["METHOD"],
+                                                            data["ENDPOINT"],
+                                                            data["HEADERS"],
+                                                            data["BODY"])
+            viplatform.visiology.timeout_value=10                                                
+            if ok:
+                string=constants.VI_API_EMPTY
+                try:
+                    string=dumps(response.json(), indent=2).encode('utf-8').decode('unicode_escape')
+                    
+                except :
+                    pass
+                self.outputEdit.setText(string)
                 
-            except :
-                pass
-            self.outputEdit.setText(string)
-            
-        else:
-            self.outputEdit.setText(response.text)
-        # self.finished.emit()
+            else:
+                self.outputEdit.setText(response.text)
+            # self.finished.emit()
         
     def clickSave(self):
              
         data=self.grabData()
-        data['HEADERS']['Authorization']=data['HEADERS']['Authorization'].replace(viplatform.visiology.userToken,"["+constants.VI_API_TOKEN_LABEL+"]")
-        name=self.comboBox.currentText().strip()
-        if name=='':
-            name='request'+str(len(self.tooltip))
-        self.tooltip[name]=dict(data)
-        self.comboBox.addItems([name])
-        with open('vitools-data.json', 'w', encoding='utf-8') as f:
-            dump(self.tooltip, f, ensure_ascii=False, indent=4)
+        if "CORRECT" in data:
+            data['HEADERS']['Authorization']=data['HEADERS']['Authorization'].replace(viplatform.visiology.userToken,"["+constants.VI_API_TOKEN_LABEL+"]")
+            name=self.comboBox.currentText().strip()
+            if name=='':
+                name='request'+str(len(self.tooltip))
+            self.tooltip[name]=dict(data)
+            self.comboBox.addItems([name])
+            with open('vitools-data.json', 'w', encoding='utf-8') as f:
+                dump(self.tooltip, f, ensure_ascii=False, indent=4)
             
     def grabData(self):
         body={}
@@ -196,20 +199,22 @@ class ViApiTab(QWidget):
                 body=loads(self.bodyEdit.toPlainText() )   
         except Exception as e:
             throwError(constants.VI_API_BODY_ERROR+str(e))
-            return
+            return {}
         headers={}
         try:
             headers=loads(self.headerEdit.toPlainText() )   
         except Exception as e:
             throwError(constants.VI_API_HEADER_ERROR+str(e))
-            return
+            return {}
         
         headers['Authorization']=headers['Authorization'].replace("["+constants.VI_API_TOKEN_LABEL+"]",viplatform.visiology.userToken)
         
         data={"METHOD":self.comboType.currentText().strip(),
               "ENDPOINT":self.endpointEdit.text().strip(),
               "HEADERS":headers,
-              "BODY":body}
+              "BODY":body,
+              "CORRECT":True}
+        self.refreshView()
         return data
     
     def on_combobox_changed(self, value):

@@ -43,31 +43,32 @@ class MainWindow(QMainWindow):
             if viplatform.init(loginDlg.username, loginDlg.password, loginDlg.baseURL):
                 loginDlg.saveURL()
                 self.clickRefresh()
-            
+                self.refreshToken()
             else:
                 viutils.throwError(viplatform.visiology.errorText)
                 QTimer.singleShot(10, self.login)
     def clickRefresh(self):
-
+        
         self.loader= viutils.LoadingGif(self.centralwidget)
         self.thread = QThread()
-        self.workerToken = viutils.WorkerToken()
+        
+        self.workerTokenA = viutils.WorkerToken()
         self.workerUser = viutils.WorkerUser()
         self.workerLicence = viutils.WorkerLicence()
         self.workerLoki = viutils.WorkerLoki()
-        self.workerToken.moveToThread(self.thread)
+        self.workerTokenA.moveToThread(self.thread)
         self.workerUser.moveToThread(self.thread)
         self.workerLicence.moveToThread(self.thread)
         self.workerLoki.moveToThread(self.thread)
         
-        self.thread.started.connect(self.workerToken.run)
+        self.thread.started.connect(self.workerTokenA.run)
         self.thread.started.connect(self.workerUser.run)
         self.thread.started.connect(self.workerLicence.run)
         self.thread.started.connect(self.workerLoki.run)
         
-        self.workerToken.finished.connect(self.thread.quit)
-        self.workerToken.finished.connect(self.workerToken.deleteLater)
-        self.workerToken.catcherror.connect(viutils.throwError)
+        self.workerTokenA.finished.connect(self.thread.quit)
+        self.workerTokenA.finished.connect(self.workerTokenA.deleteLater)
+        self.workerTokenA.catcherror.connect(viutils.throwError)
         
         self.workerUser.finished.connect(self.thread.quit)
         self.workerUser.finished.connect(self.workerUser.deleteLater)
@@ -90,7 +91,24 @@ class MainWindow(QMainWindow):
         self.thread.finished.connect(
             lambda: self.loader.stopAnimation()
         )
+    def refreshToken(self):
+        self.threadToken = QThread()
+        self.workerToken = viutils.WorkerToken()
         
+        self.workerToken.moveToThread(self.threadToken)
+        
+        self.threadToken.started.connect(self.workerToken.run)
+        
+        self.workerToken.finished.connect(self.threadToken.quit)
+        self.workerToken.finished.connect(self.workerToken.deleteLater)
+        self.workerToken.catcherror.connect(viutils.throwError)
+              
+        self.threadToken.finished.connect(self.threadToken.deleteLater)
+        self.threadToken.start()
+        QTimer.singleShot(60*1000*58, self.refreshToken)
+        self.threadToken.finished.connect(
+            lambda: self.viTabPanel.tab1.refreshView()
+        )
     def show(self):
         QMainWindow.show(self)
         QTimer.singleShot(0, self.login)

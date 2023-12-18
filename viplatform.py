@@ -78,15 +78,18 @@ class ViPlatform():
             # "Content-type": "application/json",
             "Authorization": "Basic cHVibGljX3JvX2NsaWVudDpAOVkjbmckXXU+SF4zajY="
         }
-
-        ok,response = self.sendRequest('GET','/viqube/version', headers)
-        if ok:
+        
+        
+        ok_ver,response = self.sendRequest('GET','/viqube/version', headers)
+        # self.userToken=''
+        # self.apiVersion=''
+        if ok_ver:
             try:
                 self.apiVersion=response.json()['apiPartial']
             except:
                 pass
-        ok,response = self.sendRequest('POST','/idsrv/connect/token',headers,payload)
-        if ok:
+        ok_token,response = self.sendRequest('POST','/idsrv/connect/token',headers,payload)
+        if ok_token:
             try:
                 self.userToken = response.json()['access_token']
             except:
@@ -97,7 +100,7 @@ class ViPlatform():
                 "X-API-VERSION": self.apiVersion,
                 "Authorization": "Bearer "+self.userToken
             }
-        return self.userToken!='' and self.apiVersion!=''
+        return ok_ver and ok_token
 # ----------------- check platform host ---------------------------    
     def checkPlatform(self) -> bool:
         self.hasError=False
@@ -125,7 +128,7 @@ class ViPlatform():
             "role": roleName,
             "databases": dbList
         }
-        ok, response=self.sendRequest("PUT", '/viqube/accessrights/roledb', self.headers, payload)
+        ok, response=self.sendRequest("PUT", '/viqube/accessrights/roledb', self.headers, dumps(payload))
         self.getDatabases()
         return ok
 # ----------------------------- get databases ---------------
