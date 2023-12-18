@@ -68,25 +68,32 @@ class ViPlatform():
 #-------------------- get access Token ----------------------------
     def getToken(self) -> bool:
         payload = {'grant_type':'password',
-                   'scope':'openid profile email roles viqube_api viqubeadmin_api core_logic_facade \
-                       dashboards_export_service script_service migration_service_api data_collection',
-                   'response_type':'id_token+token',
+                   'scope':'openid profile email roles viqube_api viqubeadmin_api core_logic_facade dashboards_export_service script_service migration_service_api data_collection',
+                   'response_type':'id_token token',
                    'username': self.user,
                    'password':self.password
         }
         headers = {
-            "content-type": "application/x-www-form-urlencoded",
-            "authorization": "Basic cHVibGljX3JvX2NsaWVudDpAOVkjbmckXXU+SF4zajY="
+            "Content-type": "application/x-www-form-urlencoded",
+            # "Content-type": "application/json",
+            "Authorization": "Basic cHVibGljX3JvX2NsaWVudDpAOVkjbmckXXU+SF4zajY="
         }
 
         ok,response = self.sendRequest('GET','/viqube/version', headers)
         if ok:
-            self.apiVersion=response.json()['apiPartial']
+            try:
+                self.apiVersion=response.json()['apiPartial']
+            except:
+                pass
         ok,response = self.sendRequest('POST','/idsrv/connect/token',headers,payload)
         if ok:
-            self.userToken = response.json()['access_token']
+            try:
+                self.userToken = response.json()['access_token']
+            except:
+                pass
             self.headers = {
-                "Content-Type": "application/json",
+                # "Content-Type": "application/json",
+                "Content-type": "application/json",
                 "X-API-VERSION": self.apiVersion,
                 "Authorization": "Bearer "+self.userToken
             }
@@ -101,11 +108,13 @@ class ViPlatform():
         roleList = []
         ok, response = self.sendRequest('GET','/admin/api/allRoles',self.headers)
         if ok:
-            
-            roles = response.json()
-            for role in roles:
-                if not role['IsBuiltIn']:
-                    roleList.append(role['Name'])
+            try:
+                roles = response.json()
+                for role in roles:
+                    if not role['IsBuiltIn']:
+                        roleList.append(role['Name'])
+            except:
+                pass
   
         roleList.append('Публичный доступ')
         roleList.append('Все авторизованные пользователи')
@@ -124,12 +133,18 @@ class ViPlatform():
         databases = []
         ok, response = self.sendRequest('GET','/viqube/databases',self.headers)
         if ok:
-            dbs = response.json()
-            for db in dbs:
-                databases.append(db['name'])
+            try:
+                dbs = response.json()
+                for db in dbs:
+                    databases.append(db['name'])
+            except:
+                pass
         ok, response = self.sendRequest('GET','/viqube/accessrights/roledb',self.headers)
         if ok:
-            self.db_roles = response.json()
+            try:
+                self.db_roles = response.json()
+            except:
+                pass
         return databases
 #------------------------- get license -------------------------
     def getLicense(self):
@@ -145,7 +160,10 @@ class ViPlatform():
         #     self.hasError=True
         ok, response = self.sendRequest('GET',"/admin/license/limits", self.headers)
         if ok:
-            self.license=response.json()
+            try:
+                self.license=response.json()
+            except:
+                pass
             
 #------------------------- get users -------------------------
     def getUsers(self):
@@ -218,7 +236,10 @@ class ViPlatform():
                  "Authorization": self.userToken}
         ok, response = self.sendRequest('POST',"/admin/api/users", headers, payload)
         if ok:
-            self.userList=response.json()["data"]
+            try:
+                self.userList=response.json()["data"]
+            except:
+                pass
             self.calculateLicenses()
                         
 #----------------------- used licenses -----------------------
@@ -240,38 +261,50 @@ class ViPlatform():
 #--------------------создать пользователя и дать ему роль----------------------        
     def createUser(self, userName, userPassword, email, givenName, middleName, 
                    familyName, roles):
+        
+        # .encode('utf-8').decode('unicode_escape')
+        
         payload = {
             "UserName": userName,
         }
-       
-        ok, response = self.sendRequest("POST", '/admin/api/canUserBeCreated', self.headers, payload)
+        headers = {
+            "Content-type": "application/x-www-form-urlencoded",
+            "Authorization": self.userToken
+        }
+        ok, response = self.sendRequest("POST", '/admin/api/canUserBeCreated', headers, payload)
         if ok:
-                    
+            # print(roles)
+            headers["Content-type"]="application/json"
             payload = {
-                        'Email':email,
-                        'FamilyName':familyName,
-                        'GivenName':givenName,
-                        'MiddleName':middleName,
-                        'Password':userPassword,
-                        'Roles':roles,
-                        'UserName':userName
+                        "Email":           email,
+                        "FamilyName":      familyName,
+                        "GivenName":       givenName,
+                        "MiddleName":      middleName,
+                        "Password":        userPassword,
+                        "Roles":           roles,
+                        "UserName":        userName,
+                        "IsBlocked":       False,
+                        "IsInfrastructure":False
                     }
-            payload_put={"changePass":False,"user":payload}
-            if response.json()['canUserBeCreated']:
-                ok, response = self.sendRequest("POST", '/admin/api/user',self.headers,payload)
-            else:
-                ok, response = self.sendRequest("PUT", '/admin/api/user',self.headers, payload_put)
-        # print(payload_put)       
+            payload_put={"user":payload, "changePass":userPassword!=''}
+            try:
+                if response.json()['canUserBeCreated']:
+                    ok, response = self.sendRequest("POST", '/admin/api/user',headers,dumps(payload))
+                else:
+                    ok, response = self.sendRequest("PUT", '/admin/api/user',headers, dumps(payload_put))
+            except:
+                pass
 
         return ok
             
 #--------------------удалить пользователя----------------------        
     def removeUser(self, userName):
         payload = {
-            "UserName": userName,
+            "UserName": userName
         }
         headers = {
-            "Content-Type": "application/json",
+            "content-type": "application/x-www-form-urlencoded",
+            # "Content-Type": "application/json",
             # "X-API-VERSION": self.apiVersion,
             "Authorization": self.userToken
         }
@@ -300,7 +333,9 @@ class ViPlatform():
         for alogin,apass,aemail,agivenname,afamilyname,amiddlename,arole in zip(logins,passwords,emails,givennames, familynames, middlenames, roles):
             rolesList=arole.split(',')
             if alogin!='' and apass!='' and afamilyname!='':
-                print(alogin, apass, aemail, agivenname,amiddlename,afamilyname, rolesList)
+                # print(alogin, apass, aemail, agivenname,amiddlename,afamilyname, rolesList)
+                if 'Все авторизованные пользователи' not in rolesList:
+                    rolesList.append('Все авторизованные пользователи')
                 if  not self.createUser(alogin, apass, aemail, agivenname,amiddlename,afamilyname, rolesList):
                     errorlog+=alogin+" не создан по причине "+self.errorText+"\n"
                     flag = False
@@ -325,14 +360,15 @@ class ViPlatform():
             "UserName": userName,
         }
         headers = {
-            "Content-Type": "application/json",
-            "X-API-VERSION": self.apiVersion,
+            # "Content-Type": "application/json",
+            # "X-API-VERSION": self.apiVersion,
+            "Content-type": "application/x-www-form-urlencoded",
             "Authorization": self.userToken
         }
         ok,response = self.sendRequest("POST", '/admin/api/deactivateUser',headers,payload)
         self.errorText=response.text
         return ok
-#--------------------создать пользователя и дать ему роль----------------------        
+#---------------------------------------------------------------------------        
     def sendRequest(self, req_type, rq_url, rq_headers, req_payload={}):
         self.hasError=False
         response=None
@@ -341,9 +377,27 @@ class ViPlatform():
             response = requests.request(req_type, self.baseURL+rq_url,
                                         data=req_payload, headers=rq_headers, verify=False,
                                         timeout=self.timeout_value)
-            response.encoding = 'utf-8'
+            # response.encoding = 'utf-8'
             if response.status_code!=200:
-                raise Exception(response.text)
+                raise Exception(str(response.status_code)+':'+response.text)
+        except Exception as e:
+            self.errorText=rq_url+':'+str(e)
+            self.print_error(req_type, self.baseURL+rq_url, rq_headers, req_payload, self.errorText)
+            self.hasError=True
+            # raise e
+        return not self.hasError,response
+#---------------------------------------------------------------------------        
+    def sendJSON(self, req_type, rq_url, rq_headers, req_payload={}):
+        self.hasError=False
+        response=None
+        try:
+
+            response = requests.request(req_type, self.baseURL+rq_url,
+                                        json=req_payload, headers=rq_headers, verify=False,
+                                        timeout=self.timeout_value)
+            # response.encoding = 'utf-8'
+            if response.status_code!=200:
+                raise Exception(str(response.status_code)+':'+response.text)
         except Exception as e:
             self.errorText=rq_url+':'+str(e)
             self.print_error(req_type, self.baseURL+rq_url, rq_headers, req_payload, self.errorText)
@@ -381,8 +435,11 @@ class ViPlatform():
         # try:
         ok,response = self.sendRequest("GET",'/admin/api/dashboards', headers)
         if ok:
-            for dashboard in response.json():
-                self.dashboards[dashboard['_id']]=dashboard['Name']
+            try:
+                for dashboard in response.json():
+                    self.dashboards[dashboard['_id']]=dashboard['Name']
+            except:
+                pass
             # else:
             #     raise Exception(response.text)
 
@@ -395,8 +452,10 @@ class ViPlatform():
         #     self.hasError=True
         #     # raise e
         if not self.hasError:
-            
-            self.dash_views=response.json()
+            try:
+                self.dash_views=response.json()
+            except:
+                pass
             # print(self.dash_views,self.dashboards)
             #save to config file
             with open('vitools.json','r') as f:
@@ -412,9 +471,9 @@ class ViPlatform():
         print(f'-----request error {errorsCounter} ----')
         print(errorText)
         print(f'-> at request {req_type} {rq_url}')
-        print('-> HEADER')
-        print(dumps(rq_headers, indent=2))
-        print('-> PAYLOAD')
-        print(dumps(req_payload, indent=2))
+        print('-> HEADER',type(rq_headers))
+        print(dumps(rq_headers, indent=2).encode('utf-8').decode('unicode_escape'))
+        print('-> PAYLOAD',type(req_payload))
+        print(dumps(req_payload, indent=2).encode('utf-8').decode('unicode_escape'))
         
         errorsCounter=errorsCounter+1

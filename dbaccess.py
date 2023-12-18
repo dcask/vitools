@@ -82,6 +82,7 @@ class ViDbAccessTab(QWidget):
         
     def on_combobox_changed(self):
         t=self.combo_box.currentText()
+        for c in self.checkBoxList: c.setChecked(False)
         for role in viplatform.visiology.db_roles:
             if t==role['role']:
                 for d in role['databases']:

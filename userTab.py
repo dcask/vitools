@@ -279,23 +279,35 @@ class ViUserTab(QWidget):
 #------------------- Remove selected users------------------------
     def clickRemove(self):
         indices = self.view.selectionModel().selectedRows()
+        f=True
+        error_val=''
         for index in sorted(indices):
             val = str(index.data(role=Qt.DisplayRole))
-            if viplatform.visiology.removeUser(val):
-                viutils.throwInfo("Успешно")
-            else:
-                viutils.throwError(val +" "+ viplatform.visiology.errorText)                
+            if not viplatform.visiology.removeUser(val):
+                error_val+=val+";"
+                f=False
+        if f:
+            viutils.throwInfo("Успешно")
+        else:
+            viutils.throwError(error_val +" "+ viplatform.visiology.errorText)
         self.refresh()
         self.total.setText(str(self.view.model().rowCount())+constants.VI_USER_OF_LABEL+str(len(viplatform.visiology.userList)))
 #------------------- Remove selected users------------------------
     def clickUnBlock(self):
         indices = self.view.selectionModel().selectedRows()
+        error_val=''
+        f=True
         for index in indices:
             val = str(index.data(role=Qt.DisplayRole))
-            if viplatform.visiology.deactivateUser(val):
-                viutils.throwInfo("Успешно")
-            else:
-                viutils.throwError(val +" "+ viplatform.visiology.errorText)
+            if not viplatform.visiology.deactivateUser(val):
+                error_val+=val+";"
+                f=False
+        
+        if f:
+            viutils.throwInfo("Успешно")
+        else:
+            viutils.throwError(error_val +" "+ viplatform.visiology.errorText)
+            
         self.refresh()
         self.total.setText(str(self.view.model().rowCount())+constants.VI_USER_OF_LABEL+str(len(viplatform.visiology.userList)))
 #--------------------refresh---------------------------
@@ -316,6 +328,7 @@ class ViUserTab(QWidget):
         self.thread.finished.connect(
             lambda: self.init()
         )
+        # self.view.resizeColumnsToContents()
 #---------------------------------------
     # def resizeRowsToContents(self):
         

@@ -74,6 +74,10 @@ class ViLogin(QDialog):
             except :
                 self.urldata={}
         self.centralwidgetLayout.addWidget(self.groupWidget)
+        for i in self.urldata:
+            if 'current' in self.urldata[i]:
+                if self.urldata[i]['current']:
+                    self.urlInput.setCurrentText(i)
         if not len(self.urldata):
             self.urlInput.addItems([constants.VI_LOGIN_URL])
         
@@ -95,7 +99,9 @@ class ViLogin(QDialog):
         if self.baseURL not in self.urldata:
             self.urldata[self.baseURL]={'LOKI':''}
         self.urldata[self.baseURL]['user']=self.username
-
+        for i in self.urldata:
+            self.urldata[i]['current']=False
+        self.urldata[self.baseURL]['current']=True
         with open('vitools.json', 'w', encoding='utf-8') as f:
             dump(self.urldata, f, ensure_ascii=False, indent=4)
     def on_combobox_changed(self):

@@ -73,6 +73,7 @@ VI_API_REFRESH_BUTTON="Обновить токен"
 VI_API_EXPORT_BUTTON="Выгрузить"
 VI_API_SEND_BUTTON="Отправить"
 VI_API_SAVE_BUTTON="Сохранить"
+VI_API_EMPTY="Пустой ответ"
 VI_API_HEADER_ERROR="Некорректный json в заголовках\n"
 VI_API_BODY_ERROR="Некорректный json в теле запроса\n"
 

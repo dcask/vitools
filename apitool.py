@@ -159,15 +159,20 @@ class ViApiTab(QWidget):
         # catcherror = pyqtSignal(str)
         data=self.grabData()
         viplatform.visiology.timeout_value=100
-        ok, response=viplatform.visiology.sendRequest(data["METHOD"],
+        ok, response=viplatform.visiology.sendJSON(data["METHOD"],
                                                         data["ENDPOINT"],
                                                         data["HEADERS"],
                                                         data["BODY"])
         viplatform.visiology.timeout_value=10                                                
         if ok:
-            string=dumps(response.json(), indent=2)
-            # print( string)
-            self.outputEdit.setText(string.encode('utf-8').decode('unicode_escape'))
+            string=constants.VI_API_EMPTY
+            try:
+                string=dumps(response.json(), indent=2).encode('utf-8').decode('unicode_escape')
+                
+            except :
+                pass
+            self.outputEdit.setText(string)
+            
         else:
             self.outputEdit.setText(response.text)
         # self.finished.emit()
@@ -175,7 +180,7 @@ class ViApiTab(QWidget):
     def clickSave(self):
              
         data=self.grabData()
-        data['HEADERS']['Authorization']="Bearer ["+constants.VI_API_TOKEN_LABEL+"]"
+        data['HEADERS']['Authorization']=data['HEADERS']['Authorization'].replace(viplatform.visiology.userToken,"["+constants.VI_API_TOKEN_LABEL+"]")
         name=self.comboBox.currentText().strip()
         if name=='':
             name='request'+str(len(self.tooltip))
@@ -190,7 +195,7 @@ class ViApiTab(QWidget):
             if self.comboType.currentText() in ['PUT','POST']:
                 body=loads(self.bodyEdit.toPlainText() )   
         except Exception as e:
-            self.parent.throwError(constants.VI_API_BODY_ERROR+str(e))
+            throwError(constants.VI_API_BODY_ERROR+str(e))
             return
         headers={}
         try:
@@ -199,7 +204,7 @@ class ViApiTab(QWidget):
             throwError(constants.VI_API_HEADER_ERROR+str(e))
             return
         
-        headers['Authorization'] = 'Bearer '+viplatform.visiology.userToken
+        headers['Authorization']=headers['Authorization'].replace("["+constants.VI_API_TOKEN_LABEL+"]",viplatform.visiology.userToken)
         
         data={"METHOD":self.comboType.currentText().strip(),
               "ENDPOINT":self.endpointEdit.text().strip(),
