@@ -50,8 +50,7 @@ class WorkerToken(QObject):
     def run(self):
         # viplatform.visiology.clearData()
         if viplatform.visiology.checkPlatform():
-            if viplatform.visiology.getToken():
-                print('got token')
+            viplatform.visiology.getToken()
         if viplatform.visiology.hasError:
             self.catcherror.emit(viplatform.visiology.errorText) 
         self.finished.emit()
@@ -74,6 +73,7 @@ class WorkerLoki(QObject):
     def run(self):
         # viplatform.visiology.clearData()
         if viplatform.visiology.checkPlatform():
+            viplatform.visiology.getDashboards()
             viplatform.visiology.getLokiDashboardRequests()
         if viplatform.visiology.hasError:
             self.catcherror.emit(viplatform.visiology.errorText) 

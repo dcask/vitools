@@ -407,6 +407,19 @@ class ViPlatform():
             self.hasError=True
             # raise e
         return not self.hasError,response
+    def getDashboards(self):
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": self.userToken
+        }
+        self.dashboards = {}
+        ok,response = self.sendRequest("GET",'/admin/api/dashboards', headers)
+        if ok:
+            try:
+                for dashboard in response.json():
+                    self.dashboards[dashboard['_id']]=dashboard['Name']
+            except:
+                pass
 #--------------------get loki data----------------------        
     def getLokiDashboardRequests(self):
         if self.lokiApiKey=='':
@@ -422,38 +435,17 @@ class ViPlatform():
             "end": end*1000000000,
             "step":step
         }
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": self.userToken
-        }
+        
         lokiheaders = {
             "Content-Type": "text/html",
             "Authorization": "Bearer "+self.lokiApiKey
             }
         self.dash_views={}
-        self.dashboards = {}
+        
         self.hasError=False
-        # response=None
         params = urlencode(querystring)
-        # try:
-        ok,response = self.sendRequest("GET",'/admin/api/dashboards', headers)
-        if ok:
-            try:
-                for dashboard in response.json():
-                    self.dashboards[dashboard['_id']]=dashboard['Name']
-            except:
-                pass
-            # else:
-            #     raise Exception(response.text)
+        ok,response = self.sendRequest('GET', '/grafana/api/datasources/proxy/1/loki/api/v1/query_range?'+params, lokiheaders)
 
-            # response = requests.get(self.baseURL+'/grafana/api/datasources/proxy/1/loki/api/v1/query_range', headers=lokiheaders, params=querystring,verify=False)
-            ok,response = self.sendRequest('GET', '/grafana/api/datasources/proxy/1/loki/api/v1/query_range?'+params, lokiheaders)
-        #     if not response.ok:
-        #         raise Exception(response.text)
-        # except Exception as e:
-        #     self.errorText='Get loki:'+str(e)
-        #     self.hasError=True
-        #     # raise e
         if not self.hasError:
             try:
                 self.dash_views=response.json()

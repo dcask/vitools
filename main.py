@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
         self.centralLayout.addWidget(self.refreshButton)
         self.centralLayout.addWidget(self.viTabPanel)
         self.setCentralWidget(self.centralwidget)
-        self.refreshButton.clicked.connect(self.clickRefresh)
+        self.refreshButton.setDisabled(True)
     #-------------------- press login ------------------
     def login(self):
         loginDlg = ViLogin(self)
@@ -42,8 +42,11 @@ class MainWindow(QMainWindow):
         else:
             if viplatform.init(loginDlg.username, loginDlg.password, loginDlg.baseURL):
                 loginDlg.saveURL()
+                print('init')
                 self.clickRefresh()
                 self.refreshToken()
+                self.refreshButton.setDisabled(False)
+                self.refreshButton.clicked.connect(self.clickRefresh)
             else:
                 viutils.throwError(viplatform.visiology.errorText)
                 QTimer.singleShot(10, self.login)
@@ -51,7 +54,7 @@ class MainWindow(QMainWindow):
         
         self.loader= viutils.LoadingGif(self.centralwidget)
         self.thread = QThread()
-        
+        print('clickRefresh')
         self.workerTokenA = viutils.WorkerToken()
         self.workerUser = viutils.WorkerUser()
         self.workerLicence = viutils.WorkerLicence()
@@ -92,6 +95,7 @@ class MainWindow(QMainWindow):
             lambda: self.loader.stopAnimation()
         )
     def refreshToken(self):
+        print('refreshToken')
         self.threadToken = QThread()
         self.workerToken = viutils.WorkerToken()
         
@@ -117,5 +121,5 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     mainWin = MainWindow()
     mainWin.show()
-    
+     
     sys.exit( app.exec_() )

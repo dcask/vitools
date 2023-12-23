@@ -2,11 +2,11 @@
     "https://example.visiology.su": {
         "LOKI": "eyJrIjoiVjZOakhMV0JqYjRrNGxUVDFlWVRwUkRqVVl0OFBIamUiLCJuIjoiZGNhc2tsb2tpIiwiaWQiOjF9",
         "user": "dcask",
-        "current": false
+        "current": true
     },
     "https://dcask.visiology.su": {
         "LOKI": "",
         "user": "admin",
-        "current": true
+        "current": false
     }
 }

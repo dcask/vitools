@@ -10,6 +10,7 @@ from vilicense import ViLicenseTab
 from userTab import ViUserTab
 from apitool import ViApiTab
 from lokitab import ViLokiTab
+from dashexport import ViDashboardsExport
 from PyQt5.QtWidgets import QTabWidget
 
 class ViTabPanel(QTabWidget): 
@@ -24,6 +25,7 @@ class ViTabPanel(QTabWidget):
         self.tab3 = ViLicenseTab(self) 
         self.tab1 = ViApiTab(self) 
         self.tab5 = ViLokiTab(self) 
+        self.tab6 = ViDashboardsExport(self)
         self.resize(600, 400) 
 
         self.addTab(self.tab1, constants.VI_TABPANEL_TAB1_NAME) 
@@ -31,6 +33,7 @@ class ViTabPanel(QTabWidget):
         self.addTab(self.tab3, constants.VI_TABPANEL_TAB3_NAME)
         self.addTab(self.tab4, constants.VI_TABPANEL_TAB4_NAME)
         self.addTab(self.tab5, constants.VI_TABPANEL_TAB5_NAME)
+        self.addTab(self.tab6, constants.VI_TABPANEL_TAB6_NAME)
         
     def init(self):
         self.tab1.init()
@@ -38,4 +41,12 @@ class ViTabPanel(QTabWidget):
         self.tab3.init()
         self.tab4.init()
         self.tab5.init()
+        self.tab6.init()
+        
+    # def resizeEvent(self, event):
+    #      print(self.frameGeometry().height())
+        
+    # #     self.setFixedHeight(self.parent.frameGeometry().height())
+    # #     # self.scroll_area.update()
+    #      return super(QTabWidget,self).resizeEvent(event)
     
