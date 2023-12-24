@@ -42,7 +42,7 @@ class MainWindow(QMainWindow):
         else:
             if viplatform.init(loginDlg.username, loginDlg.password, loginDlg.baseURL):
                 loginDlg.saveURL()
-                print('init')
+                viplatform.visiology.windowCentralWidget=self.centralwidget
                 self.clickRefresh()
                 self.refreshToken()
                 self.refreshButton.setDisabled(False)
@@ -111,6 +111,10 @@ class MainWindow(QMainWindow):
         self.threadToken.finished.connect(
             lambda: self.viTabPanel.tab1.refreshView()
         )
+    def closeEvent(self, event):
+        print('main closed')
+        self.viTabPanel.close()
+        event.accept()
     def show(self):
         QMainWindow.show(self)
         QTimer.singleShot(0, self.login)

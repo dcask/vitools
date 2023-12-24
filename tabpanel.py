@@ -28,12 +28,12 @@ class ViTabPanel(QTabWidget):
         self.tab6 = ViDashboardsExport(self)
         self.resize(600, 400) 
 
-        self.addTab(self.tab6, constants.VI_TABPANEL_TAB1_NAME) 
+        self.addTab(self.tab1, constants.VI_TABPANEL_TAB1_NAME) 
         self.addTab(self.tab2, constants.VI_TABPANEL_TAB2_NAME) 
         self.addTab(self.tab3, constants.VI_TABPANEL_TAB3_NAME)
         self.addTab(self.tab4, constants.VI_TABPANEL_TAB4_NAME)
         self.addTab(self.tab5, constants.VI_TABPANEL_TAB5_NAME)
-        self.addTab(self.tab1, constants.VI_TABPANEL_TAB6_NAME)
+        self.addTab(self.tab6, constants.VI_TABPANEL_TAB6_NAME)
         
     def init(self):
         self.tab1.init()
@@ -43,6 +43,14 @@ class ViTabPanel(QTabWidget):
         self.tab5.init()
         self.tab6.init()
         
+    def closeEvent(self, event):
+        self.tab1.close()
+        self.tab2.close()
+        self.tab3.close()
+        self.tab4.close()
+        self.tab5.close()
+        self.tab6.close()
+        event.accept()
     # def resizeEvent(self, event):
     #      print(self.frameGeometry().height())
         

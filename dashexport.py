@@ -8,18 +8,20 @@ Created on Thu Dec 21 13:57:47 2023
 import constants
 import viplatform
 import viutils
+#  from json import load,dump
 # import urllib.request
 import zipfile
 import os
 import shutil
-from github import Github
+# from github import Github
 from PyQt5.QtWidgets import QWidget,  QVBoxLayout, QLabel, QGridLayout
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QTreeView, QComboBox
 
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt
-from PyQt5.QtCore import pyqtSignal
+# from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtCore import QThread
+
 
 def add_items_to_model(parent, elements):
     for key, value in elements.items():
@@ -67,8 +69,8 @@ class ViDashboardsExport(QWidget):
     def __init__(self, parent): 
         super(QWidget, self).__init__(parent) 
         
-        self.finished = pyqtSignal()
-        self.catcherror = pyqtSignal(str)
+        # self.finished = pyqtSignal()
+        # self.catcherror = pyqtSignal(str)
         
         self.centralwidgetLayout = QVBoxLayout(self)
         
@@ -78,7 +80,7 @@ class ViDashboardsExport(QWidget):
         self.apitokenLabel = QLabel()
         self.apitokenLabel.setText(constants.VI_EXPORT_KEY_LABEL)
         self.apiKey = QLineEdit()
-        self.apiKey.setText("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")
+        # self.apiKey.setText("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")
         self.connectButton = QPushButton(constants.VI_IMPORT_CONNECT_BUTTON_LABEL)
         self.connectButton.clicked.connect(self.onClickConnect)
         
@@ -120,7 +122,7 @@ class ViDashboardsExport(QWidget):
         self.groupLayout.addWidget(self.repoGroup,          1, 0, 1, 2)
         self.groupLayout.addWidget(self.branchGroup,        1, 2, 1, 2)
         
-        self.groupLayout.addWidget(self.prefixLabel,        1, 4, 1, 1)
+        self.groupLayout.addWidget(self.prefixLabel,        1, 4, 1, 1, Qt.AlignRight)
         self.groupLayout.addWidget(self.prefix,             1, 5, 1, 3)
         
         self.groupLayout.addWidget(self.treeViewPlatform,   2, 0, 2, 4)
@@ -129,8 +131,16 @@ class ViDashboardsExport(QWidget):
         self.groupLayout.addWidget(self.exportButton,       4, 0, 1, 4)
         self.groupLayout.addWidget(self.importButton,       4, 4, 1, 4)
         self.centralwidgetLayout.addWidget(self.groupWidget)
+        
+        
+        # self.loader.stopAnimation()
+        
         # self.importButton.setEnabled(False)
-        # self.exportButton.setEnabled(False)  
+        # self.exportButton.setEnabled(False) 
+#-----------------------------------------------------------------------------
+    def closeEvent(self, event):
+        print('destroyed')
+        self.thread.quit()
 #-----------------------------------------------------------------------------
     def onClickGitTree(self, modelIndex):
         item=self.modelGit.itemFromIndex(modelIndex)
@@ -144,7 +154,7 @@ class ViDashboardsExport(QWidget):
             Qt.Checked, -1,
             Qt.MatchExactly | Qt.MatchRecursive)
         for index in checked:
-            item = self.model.itemFromIndex(index)
+            item = model.itemFromIndex(index)
             res.append({'name':item.text(), 'data':item.data()})
         return res
 #-----------------------------------------------------------------------------    
@@ -161,19 +171,61 @@ class ViDashboardsExport(QWidget):
                             stack.append(child)
 #-----------------------------------------------------------------------------                            
     def init(self):
-        pass
-    def connectThread(self):
-        api_token = self.apiKey.text()
-        self.git = Github(api_token)
-        self.exportButton.setEnabled(True)
-        repos=self.git.get_user().get_repos()
+        self.apiKey.setText(viplatform.visiology.githubkey)
+        
+        self.thread = QThread()
+        self.worker = viutils.WorkerGit()
+        self.worker.moveToThread(self.thread)
+        self.thread.finished.connect(self.thread.deleteLater)
+        # self.finished.connect(self.thread.quit)
+        self.worker.gotRepos.connect(self.loadReposCombo)
+        
+        self.worker.initted.connect(self.connectThread)
+        
+        
+        self.worker.gotRepoBranch.connect(self.loadRepoBranch)
+        # self.worker.gotRepoBranch.connect(self.loader.pauseAnimation)
+        
+        self.worker.gotFiles.connect(self.loadFiles)
+        # self.worker.gotFiles.connect(self.loader.pauseAnimation)
+        
+        self.worker.filesUploaded.connect(self.onRepoChanged)
+        # self.worker.filesUploaded.connect(self.loader.pauseAnimation)
+        
+        # self.loader.pauseAnimation()
+        # self.loader.moveToThread(self.thread)
+        self.thread.start()
+
+#-----------------------------thread ------------------------------------------
+    def loadReposCombo(self):
+        
+        repos=self.worker.repos
         self.repoCombo.clear()
         self.repoCombo.addItems([str(i).replace('Repository(full_name="','').replace('")','') for i in repos])
+        viplatform.visiology.saveIniFile({'githubkey':self.apiKey.text()})
+        self.preparePlatformDashboardTree()
+        self.loader.stopAnimation()
+        print('stop at loadReposCombo')
         
+    def connectThread(self):
+        self.loader.stopAnimation()
+        print('stop at connectThread')
+        # api_token = self.apiKey.text()
+        # self.git = Github(api_token)
+        self.exportButton.setEnabled(True)
+        print('start at connectThread')
+        if not self.loader.started:
+            self.loader= viutils.LoadingGif()
+
+        self.worker.commandGetRepos.emit()
+        
+        # repos=self.git.get_user().get_repos()
+        # self.repoCombo.clear()
+        # self.repoCombo.addItems([str(i).replace('Repository(full_name="','').replace('")','') for i in repos])
+        # # self.gitThread
     def onClickConnect(self):
         
         # self.loader= viutils.LoadingGif(self)
-        # self.thread = QThread()
         # self.worker = viutils.WorkerLoki()
         # self.worker.moveToThread(self.thread)
         # self.thread.started.connect(self.worker.run)
@@ -188,42 +240,85 @@ class ViDashboardsExport(QWidget):
         # self.thread.finished.connect(
         #     lambda: self.init()
         # )
-        self.connectThread()
-        self.preparePlatformDashboardTree()
+        # self.connectThread()
+        print('start at onclickconnect')
+        # if not self.loader.started:
+        self.loader= viutils.LoadingGif(self.groupWidget)
+        
+        self.worker.commandInit.emit(self.apiKey.text())
+        #save to config file
+        # viplatform.visiology.saveIniFile({'githubkey':self.apiKey.text()})
+        # self.preparePlatformDashboardTree()
+#-----------------------------------------------------------------------------
+    def loadFiles(self):
+        
+        
+        self.modelGit=create_model(self.worker.files,"GitHub")
+        self.treeViewGit.setModel(self.modelGit)
+        root = self.modelGit.invisibleRootItem()
+        for item in self.iterItems(root):
+            if not item.hasChildren():
+                item.setCheckable(True)
+                item.setCheckState(Qt.Unchecked)
+        
+        self.loader.stopAnimation()
+        print('stop at loadfiles')
+        
+#------------------------------thread-----------------------------------------
+    def loadRepoBranch(self):
+        # self.loader.stopAnimation()
+        # print('stop at loadRepoBranch')
+        branches = self.worker.branches
+        self.branchCombo.clear()
+        self.branchCombo.addItems([str(i).replace('Branch(name="','').replace('")','') for i in branches])
+        # print('start at loasdrepobranch')
+        # self.loader= viutils.LoadingGif(self.groupWidget)
+        
+        self.worker.commandLoadfiles.emit()
+        
 #----------------------------------------------------------------------------=
     def onRepoChanged(self):
+        
         repo = self.repoCombo.currentText()
         if repo!='':
-            self.repo = self.git.get_repo(repo)
-            branches = self.repo.get_branches()
-            self.branchCombo.clear()
-            self.branchCombo.addItems([str(i).replace('Branch(name="','').replace('")','') for i in branches])
-            self.modelGit=create_model(self.getFromGit(),"GitHub")
-            self.treeViewGit.setModel(self.modelGit)
-            root = self.modelGit.invisibleRootItem()
-            for item in self.iterItems(root):
-                if not item.hasChildren():
-                    item.setCheckable(True)
-                    item.setCheckState(Qt.Unchecked)
+            print('start at onRepoChange')
+            # if self.loader:
+            #     self.loader.stopAnimation()
+            if not self.loader.started:
+                self.loader= viutils.LoadingGif()
+            
+            self.worker.commandGetRepoBranch.emit(repo)
+            # self.loader= viutils.LoadingGif(self.groupWidget)
+            # self.repo = self.git.get_repo(repo)
+            # branches = self.repo.get_branches()
+            # self.branchCombo.clear()
+            # self.branchCombo.addItems([str(i).replace('Branch(name="','').replace('")','') for i in branches])
+            # self.modelGit=create_model(self.getFromGit(),"GitHub")
+            # self.treeViewGit.setModel(self.modelGit)
+            # root = self.modelGit.invisibleRootItem()
+            # for item in self.iterItems(root):
+            #     if not item.hasChildren():
+            #         item.setCheckable(True)
+            #         item.setCheckState(Qt.Unchecked)
  #----------------------------------------------------------------------------=                   
-    def getFromGit(self):
+    # def getFromGit(self):
 
-        all_files = []
-        contents = self.repo.get_contents("")
-        while contents:
-            file_content = contents.pop(0)
-            if file_content.type == "dir":
-                contents.extend(self.repo.get_contents(file_content.path))
-            else:
-                file = file_content
-                filename=str(file).replace('ContentFile(path="','').replace('")','')
-                if "name.txt" in filename:
-                    filecontent=file.decoded_content.decode()
-                    all_files.append(filename.replace('name.txt',filecontent))
-        p={}
-        for file in all_files:
-           p=prepareDataFromGit(file,p, file)
-        return p
+    #     all_files = []
+    #     contents = self.repo.get_contents("")
+    #     while contents:
+    #         file_content = contents.pop(0)
+    #         if file_content.type == "dir":
+    #             contents.extend(self.repo.get_contents(file_content.path))
+    #         else:
+    #             file = file_content
+    #             filename=str(file).replace('ContentFile(path="','').replace('")','')
+    #             if "name.txt" in filename:
+    #                 filecontent=file.decoded_content.decode()
+    #                 all_files.append(filename.replace('name.txt',filecontent))
+    #     p={}
+    #     for file in all_files:
+    #        p=prepareDataFromGit(file,p, file)
+    #     return p
 #-----------------------------------------------------------------------------
     def preparePlatformDashboardTree(self):
         payload={"QueryType":"GetDashboardList+Query"}
@@ -243,6 +338,7 @@ class ViDashboardsExport(QWidget):
 #-----------------------------------------------------------------------------
     def onClickDownload(self):
         self.get_checked()
+#--------------------------------------------------------------------------
     def onClickUpload(self):
         payload={"dashboardsGuidList":[],
                 "dataSources":[],
@@ -273,37 +369,44 @@ class ViDashboardsExport(QWidget):
             with open(os.path.dirname(filename)+'/name.txt', 'w',encoding="utf-8") as s:
                 s.write(d['name'])
             os.remove(filename)
-        self.uploadLocalFolder()
+        if len(dashList)>0:
+            print('start at onClickUpload')
+            if not self.loader.started:
+                self.loader= viutils.LoadingGif(self.groupWidget)
+            
+            self.worker.commandUploadFiles.emit(self.prefix.text(),self.branchCombo.currentText())
+            # self.onRepoChanged()
 #------------------------------------------------------------------------------        
     def uploadLocalFolder(self):
+        pass
+        # all_files = []
+        # git_prefix = self.prefix.text()
+        # if git_prefix[-1]!='/' : git_prefix+='/'
+        # repo_branch = self.branchCombo.currentText()
+        # contents = self.repo.get_contents("")
+        # while contents:
+        #     file_content = contents.pop(0)
+        #     if file_content.type == "dir":
+        #         contents.extend(self.repo.get_contents(file_content.path))
+        #     else:
+        #         file = file_content
+        #         all_files.append(str(file).replace('ContentFile(path="','').replace('")',''))
         
-        all_files = []
-        git_prefix = self.prefix.text()
-        repo_branch = self.branchCombo.currentText()
-        contents = self.repo.get_contents("")
-        while contents:
-            file_content = contents.pop(0)
-            if file_content.type == "dir":
-                contents.extend(self.repo.get_contents(file_content.path))
-            else:
-                file = file_content
-                all_files.append(str(file).replace('ContentFile(path="','').replace('")',''))
-        
-        for root, subdirs, files in os.walk(constants.VI_EXPORT_PATH):
+        # for root, subdirs, files in os.walk(constants.VI_EXPORT_PATH):
                   
-            for filename in files:
-                file_path = os.path.join(root, filename)
+        #     for filename in files:
+        #         file_path = os.path.join(root, filename)
 
-                with open(file_path, 'r', encoding="utf-8" ) as f:
-                    content = f.read()
+        #         with open(file_path, 'r', encoding="utf-8" ) as f:
+        #             content = f.read()
                 
-                # Upload to github
+        #         # Upload to github
                 
-                git_file = git_prefix+os.path.basename(root)+'/'+ filename
-                if git_file in all_files:
-                    contents = self.repo.get_contents(git_file)
-                    self.repo.update_file(contents.path, "committing dashboards", 
-                                          content, contents.sha, branch=repo_branch)
-                else:
-                    self.repo.create_file(git_file, "committing dashboards", 
-                                          content, branch=repo_branch)
+        #         git_file = git_prefix+os.path.basename(root)+'/'+ filename
+        #         if git_file in all_files:
+        #             contents = self.repo.get_contents(git_file)
+        #             self.repo.update_file(contents.path, "committing dashboards", 
+        #                                   content, contents.sha, branch=repo_branch)
+        #         else:
+        #             self.repo.create_file(git_file, "committing dashboards", 
+        #                                   content, branch=repo_branch)

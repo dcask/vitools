@@ -7,10 +7,13 @@ Created on Thu Nov 30 21:57:53 2023
 
 
 import constants
+from viutils import loadIniFile
 from json import load, dump
 from PyQt5.QtWidgets import QComboBox, QDialog, QWidget,  QVBoxLayout, QLabel, QGridLayout, QLineEdit, QPushButton
 from PyQt5 import QtGui
 from PyQt5.QtCore import QSize, Qt
+
+
 
 class ViLogin(QDialog):
     def __init__(self, parent): 
@@ -65,14 +68,16 @@ class ViLogin(QDialog):
         self.groupLayout.addWidget(self.loginButton, 3, 1, 1, 1)
         
         
-        with open('vitools.json', 'a+') as f:
-            pass
-        with open('vitools.json','r') as f:
-            try:
-                self.urldata=load(f)
-                self.urlInput.addItems([x for x in self.urldata])
-            except :
-                self.urldata={}
+        # with open('vitools.json', 'a+') as f:
+        #     pass
+        # with open('vitools.json','r') as f:
+        #     try:
+        #         self.urldata=load(f)
+        #         self.urlInput.addItems([x for x in self.urldata])
+        #     except :
+        
+        self.urldata=loadIniFile()
+        self.urlInput.addItems([x for x in self.urldata])
         self.centralwidgetLayout.addWidget(self.groupWidget)
         for i in self.urldata:
             if 'current' in self.urldata[i]:
@@ -98,6 +103,7 @@ class ViLogin(QDialog):
         
         if self.baseURL not in self.urldata:
             self.urldata[self.baseURL]={'LOKI':''}
+            self.urldata[self.baseURL]={'githubkey':''}
         self.urldata[self.baseURL]['user']=self.username
         for i in self.urldata:
             self.urldata[i]['current']=False

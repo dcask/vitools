@@ -5,6 +5,7 @@ Created on Fri Dec  1 09:07:42 2023
 @author: dcask
 """
 import requests
+from viutils import loadIniFile
 from urllib.parse import urlencode
 # import constants
 from time import time
@@ -36,12 +37,14 @@ class ViPlatform():
         self.user=''
         self.timeout_value=10
         self.clearData()
+        self.windowCentralWidget=None
 #------------clear data-----------------------------
     def clearData(self):  
         self.since=24
         self.userToken=''
         self.db_roles=[]
         self.apiVersion=''
+        self.githubkey=''
         self.errorText=''
         self.headers={}
         self.userList=[]
@@ -55,13 +58,17 @@ class ViPlatform():
         self.password=password
         self.user=username
         self.baseURL=baseUrl
-        with open('vitools.json','r') as f:
-            try:
-                urldata=load(f)
-            except :
-                urldata={}
+        # with open('vitools.json','r') as f:
+        #     try:
+        #         urldata=load(f)
+        #     except :
+        #         urldata={}
+        urldata=loadIniFile()
         if self.baseURL in urldata:
-            self.lokiApiKey=urldata[self.baseURL]['LOKI']
+            if 'LOKI' in urldata[self.baseURL]:
+                self.lokiApiKey=urldata[self.baseURL]['LOKI']
+            if 'githubkey' in urldata[self.baseURL]:
+                self.githubkey=urldata[self.baseURL]['githubkey']
         return self.getToken()
     def show(self) -> None:
         print(self.user)
@@ -453,14 +460,16 @@ class ViPlatform():
                 pass
             # print(self.dash_views,self.dashboards)
             #save to config file
-            with open('vitools.json','r') as f:
-                try:
-                    urldata=load(f)
-                except :
-                    urldata={}
-            urldata[self.baseURL]['LOKI']=self.lokiApiKey
-            with open('vitools.json', 'w', encoding='utf-8') as f:
-                dump(urldata, f, ensure_ascii=False, indent=4)       
+            # with open('vitools.json','r') as f:
+            #     try:
+            #         urldata=load(f)
+            #     except :
+            #         urldata={}
+            # urldata[self.baseURL]['LOKI']=self.lokiApiKey
+            # with open('vitools.json', 'w', encoding='utf-8') as f:
+            #     dump(urldata, f, ensure_ascii=False, indent=4)      
+            self.saveIniFile({'LOKI':self.lokiApiKey})
+#-----------------------------------------------------------------------------
     def print_error(self, req_type, rq_url, rq_headers, req_payload, errorText):
         global errorsCounter
         print(f'-----request error {errorsCounter} ----')
@@ -472,3 +481,14 @@ class ViPlatform():
         print(dumps(req_payload, indent=2).encode('utf-8').decode('unicode_escape'))
         
         errorsCounter=errorsCounter+1
+#------------------------------------------------------------------------------
+    def saveIniFile(self, keyDict):
+        with open('vitools.json','r') as f:
+            try:
+                urldata=load(f)
+            except :
+                urldata={}
+        for i in keyDict:
+            urldata[self.baseURL][i]=keyDict[i]
+        with open('vitools.json', 'w', encoding='utf-8') as f:
+            dump(urldata, f, ensure_ascii=False, indent=4) 

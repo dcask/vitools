@@ -2,7 +2,8 @@
     "https://example.visiology.su": {
         "LOKI": "eyJrIjoiVjZOakhMV0JqYjRrNGxUVDFlWVRwUkRqVVl0OFBIamUiLCJuIjoiZGNhc2tsb2tpIiwiaWQiOjF9",
         "user": "dcask",
-        "current": true
+        "current": true,
+        "githubkey": "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"
     },
     "https://dcask.visiology.su": {
         "LOKI": "",

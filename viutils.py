@@ -7,11 +7,39 @@ Created on Fri Dec  1 22:30:40 2023
 
 import constants
 import viplatform
+from github import Github
+from json import load
+import os 
 from PyQt5.QtWidgets import QWidget, QLabel, QMessageBox
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QMovie, QIcon
 from PyQt5.QtCore import pyqtSignal, QObject
 
+#------------------------------------------------------------------------------
+def loadIniFile()->dict:
+    data={}
+    with open('vitools.json', 'a+') as f:
+        pass
+    with open('vitools.json','r') as f:
+        try:
+            data=load(f)
+        except :
+            pass
+    return data
+def prepareDataFromGit(s, res, filename) -> dict:
+    path=s.split('/')
+    root=path.pop(0)
+    if root not in res: res[root]={}
+    if len(path)>0: 
+        res[root]=prepareDataFromGit('/'.join(path),res[root],filename)
+        parent_path=filename.split(root)[0]
+        if parent_path!='': 
+            res[root]['special_data']=parent_path+'/'+root
+        else:
+            res[root]['special_data']=root
+    else:
+        res[root]=filename
+    return res
 
 def throwError(message):
     msg = QMessageBox()
@@ -30,11 +58,110 @@ def throwInfo(message):
     msg.setWindowTitle("Done")
     msg.setWindowIcon(QIcon(constants.VI_WINDOW_ICON_PATH))
     msg.exec_()
+#--------------------------------CLASS WORKER ---------------------------------    
     
+class WorkerGit(QObject):
+    finished = pyqtSignal()
+    catcherror = pyqtSignal(str)
+    gotRepos = pyqtSignal()
+    initted = pyqtSignal()
+    gotRepoBranch = pyqtSignal()
+    gotFiles = pyqtSignal()
+    filesUploaded =pyqtSignal()
+    commandLoadfiles= pyqtSignal()
+    commandGetRepos = pyqtSignal()
+    commandGetRepoBranch = pyqtSignal(str)
+    commandInit = pyqtSignal(str)
+    commandUploadFiles = pyqtSignal(str,str)
+    def __init__(self): 
+        super(QObject, self).__init__()
+        self.commandInit.connect(self.init)
+        self.commandLoadfiles.connect(self.getFiles)
+        self.commandGetRepos.connect(self.getRepos)
+        self.commandGetRepoBranch.connect(self.getRepoBranch)
+        self.commandUploadFiles.connect(self.uploadFiles)
+        
+    def init(self, key):
+        self.repos=[]
+        
+        try:
+            self.git = Github(key)
+            print('initted')
+            self.initted.emit()
+        except Exception as e:
+            throwError(str(e))
+            
+    def getRepos(self):
+        try:
+            self.repos=self.git.get_user().get_repos()
+        except Exception as e:
+            throwError(str(e))
+        print('gotRepos')    
+        self.gotRepos.emit()
+    def getRepoBranch(self, s):
+        print('Get '+s)
+        try:
+            self.repo = self.git.get_repo(s)
+            self.branches = self.repo.get_branches()
+        except Exception as e:
+            throwError(str(e))
+        self.gotRepoBranch.emit()
+    def getFiles(self):
+        all_files = []
+        contents = self.repo.get_contents("")
+        while contents:
+            file_content = contents.pop(0)
+            if file_content.type == "dir":
+                contents.extend(self.repo.get_contents(file_content.path))
+            else:
+                file = file_content
+                filename=str(file).replace('ContentFile(path="','').replace('")','')
+                if "name.txt" in filename:
+                    filecontent=file.decoded_content.decode()
+                    all_files.append(filename.replace('name.txt',filecontent))
+        self.files={}
+        for file in all_files:
+            self.files=prepareDataFromGit(file,self.files, file)
+        self.gotFiles.emit()
+    def uploadFiles(self,git_prefix,repo_branch):
+        all_files = []
+        print('prefix', git_prefix,repo_branch)
+        if git_prefix!='':
+            if git_prefix[-1]!='/' : git_prefix+='/'
+
+        contents = self.repo.get_contents("")
+        while contents:
+            file_content = contents.pop(0)
+            if file_content.type == "dir":
+                contents.extend(self.repo.get_contents(file_content.path))
+            else:
+                file = file_content
+                all_files.append(str(file).replace('ContentFile(path="','').replace('")',''))
+        
+        for root, subdirs, files in os.walk(constants.VI_EXPORT_PATH):
+                  
+            for filename in files:
+                file_path = os.path.join(root, filename)
+
+                with open(file_path, 'r', encoding="utf-8" ) as f:
+                    content = f.read()
+                
+                # Upload to github
+                
+                git_file = git_prefix+os.path.basename(root)+'/'+ filename
+                if git_file in all_files:
+                    contents = self.repo.get_contents(git_file)
+                    self.repo.update_file(contents.path, "committing dashboards", 
+                                          content, contents.sha, branch=repo_branch)
+                else:
+                    self.repo.create_file(git_file, "committing dashboards", 
+                                          content, branch=repo_branch)
+        self.filesUploaded.emit()
+# -----------------------------------------------------------------------------        
 class WorkerUser(QObject):
     finished = pyqtSignal()
     catcherror = pyqtSignal(str)
-
+    
     def run(self):
         # viplatform.visiology.clearData()
         if viplatform.visiology.checkPlatform():
@@ -80,14 +207,18 @@ class WorkerLoki(QObject):
         self.finished.emit()
         
 class LoadingGif(QWidget): 
-    
-    def __init__(self, parent):
-        super(QWidget, self).__init__(parent)
+    # start
+    def __init__(self, parent=None):
+        super(QWidget, self).__init__(viplatform.visiology.windowCentralWidget)#
         self.setFixedSize(50,50)
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.CustomizeWindowHint)
+        # if parent:
         geo = self.geometry()
-        geo.moveCenter(parent.geometry().center())
+        print("parent:", parent)
+        geo.moveCenter(viplatform.visiology.windowCentralWidget.geometry().center())
+        print(geo.x(),geo.y())
         self.setGeometry(geo)
+        self.started=True
         
         
         self.label_animation = QLabel(self)
@@ -96,12 +227,26 @@ class LoadingGif(QWidget):
         self.startAnimation() 
         self.show()
   
-    def startAnimation(self): 
+    def startAnimation(self):
+        self.started=True
+        # geo = self.geometry()
+        # geo.moveCenter(self.parent.geometry().center())
+        # self.setGeometry(geo)
         self.movie.start() 
-  
+        print('start animation', self.parentWidget())
+        # self.show()
+    # def pauseAnimation(self):
+    #     self.movie.stop() 
+    #     print('pause animation')
+    #     self.hide()
     def stopAnimation(self): 
+        self.started=False
         self.movie.stop()
+        print('stop animation')
         self.close()
+        self.deleteLater()
+
+        
     
     # def sho(self): 
     #         self.movie.stop()
