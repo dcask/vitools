@@ -28,12 +28,12 @@ class ViTabPanel(QTabWidget):
         self.tab6 = ViDashboardsExport(self)
         self.resize(600, 400) 
 
-        self.addTab(self.tab1, constants.VI_TABPANEL_TAB1_NAME) 
+        self.addTab(self.tab6, constants.VI_TABPANEL_TAB1_NAME) 
         self.addTab(self.tab2, constants.VI_TABPANEL_TAB2_NAME) 
         self.addTab(self.tab3, constants.VI_TABPANEL_TAB3_NAME)
         self.addTab(self.tab4, constants.VI_TABPANEL_TAB4_NAME)
         self.addTab(self.tab5, constants.VI_TABPANEL_TAB5_NAME)
-        self.addTab(self.tab6, constants.VI_TABPANEL_TAB6_NAME)
+        self.addTab(self.tab1, constants.VI_TABPANEL_TAB6_NAME)
         
     def init(self):
         self.tab1.init()

@@ -54,7 +54,6 @@ class MainWindow(QMainWindow):
         
         self.loader= viutils.LoadingGif(self.centralwidget)
         self.thread = QThread()
-        print('clickRefresh')
         self.workerTokenA = viutils.WorkerToken()
         self.workerUser = viutils.WorkerUser()
         self.workerLicence = viutils.WorkerLicence()
@@ -95,7 +94,6 @@ class MainWindow(QMainWindow):
             lambda: self.loader.stopAnimation()
         )
     def refreshToken(self):
-        print('refreshToken')
         self.threadToken = QThread()
         self.workerToken = viutils.WorkerToken()
         
