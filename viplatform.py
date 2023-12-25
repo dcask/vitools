@@ -397,6 +397,28 @@ class ViPlatform():
             # raise e
         return not self.hasError,response
 #---------------------------------------------------------------------------        
+    def sendFile(self, rq_url,  req_data):
+        self.hasError=False
+        response=None
+        try:
+            headers = {
+                "Content-Type": "application/octet-stream",
+                "Authorization": "Bearer "+self.userToken,
+                }
+
+            response = requests.request('POST', self.baseURL+rq_url,
+                                        data=req_data, headers=headers, verify=False,
+                                        timeout=self.timeout_value)
+            # response.encoding = 'utf-8'
+            if response.status_code!=200:
+                raise Exception(str(response.status_code)+':'+response.text)
+        except Exception as e:
+            self.errorText=rq_url+':'+str(e)
+            print('File', self.baseURL+rq_url,headers, self.errorText)
+            self.hasError=True
+            # raise e
+        return not self.hasError,response
+#---------------------------------------------------------------------------        
     def sendJSON(self, req_type, rq_url, rq_headers, req_payload={}):
         self.hasError=False
         response=None

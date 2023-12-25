@@ -9,7 +9,10 @@ import constants
 import viplatform
 from github import Github
 from json import load
-import os 
+import zipfile
+import os
+import shutil
+import base64 
 from PyQt5.QtWidgets import QWidget, QLabel, QMessageBox
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QMovie, QIcon
@@ -68,11 +71,13 @@ class WorkerGit(QObject):
     gotRepoBranch = pyqtSignal()
     gotFiles = pyqtSignal()
     filesUploaded =pyqtSignal()
+    filesDownloaded =pyqtSignal()
     commandLoadfiles= pyqtSignal()
     commandGetRepos = pyqtSignal()
     commandGetRepoBranch = pyqtSignal(str)
     commandInit = pyqtSignal(str)
     commandUploadFiles = pyqtSignal(str,str)
+    commandDownloadFiles = pyqtSignal(list,str)
     def __init__(self): 
         super(QObject, self).__init__()
         self.commandInit.connect(self.init)
@@ -80,6 +85,7 @@ class WorkerGit(QObject):
         self.commandGetRepos.connect(self.getRepos)
         self.commandGetRepoBranch.connect(self.getRepoBranch)
         self.commandUploadFiles.connect(self.uploadFiles)
+        self.commandDownloadFiles.connect(self.downloadFiles)
         
     def init(self, key):
         self.repos=[]
@@ -108,55 +114,96 @@ class WorkerGit(QObject):
         self.gotRepoBranch.emit()
     def getFiles(self):
         all_files = []
-        contents = self.repo.get_contents("")
-        while contents:
-            file_content = contents.pop(0)
-            if file_content.type == "dir":
-                contents.extend(self.repo.get_contents(file_content.path))
-            else:
-                file = file_content
-                filename=str(file).replace('ContentFile(path="','').replace('")','')
-                if "name.txt" in filename:
-                    filecontent=file.decoded_content.decode()
-                    all_files.append(filename.replace('name.txt',filecontent))
-        self.files={}
-        for file in all_files:
-            self.files=prepareDataFromGit(file,self.files, file)
-        self.gotFiles.emit()
+        try:
+            contents = self.repo.get_contents("")
+            while contents:
+                file_content = contents.pop(0)
+                if file_content.type == "dir":
+                    contents.extend(self.repo.get_contents(file_content.path))
+                else:
+                    file = file_content
+                    filename=str(file).replace('ContentFile(path="','').replace('")','')
+                    if "name.txt" in filename:
+                        filecontent=file.decoded_content.decode()
+                        all_files.append(filename.replace('name.txt',filecontent))
+            self.files={}
+            for file in all_files:
+                self.files=prepareDataFromGit(file,self.files, file)
+            self.gotFiles.emit()
+        except Exception as e:
+            throwError(str(e))
     def uploadFiles(self,git_prefix,repo_branch):
         all_files = []
-        print('prefix', git_prefix,repo_branch)
-        if git_prefix!='':
-            if git_prefix[-1]!='/' : git_prefix+='/'
-
-        contents = self.repo.get_contents("")
-        while contents:
-            file_content = contents.pop(0)
-            if file_content.type == "dir":
-                contents.extend(self.repo.get_contents(file_content.path))
-            else:
-                file = file_content
-                all_files.append(str(file).replace('ContentFile(path="','').replace('")',''))
-        
-        for root, subdirs, files in os.walk(constants.VI_EXPORT_PATH):
-                  
-            for filename in files:
-                file_path = os.path.join(root, filename)
-
-                with open(file_path, 'r', encoding="utf-8" ) as f:
-                    content = f.read()
-                
-                # Upload to github
-                
-                git_file = git_prefix+os.path.basename(root)+'/'+ filename
-                if git_file in all_files:
-                    contents = self.repo.get_contents(git_file)
-                    self.repo.update_file(contents.path, "committing dashboards", 
-                                          content, contents.sha, branch=repo_branch)
+        try:
+            print('prefix', git_prefix,repo_branch)
+            if git_prefix!='':
+                if git_prefix[-1]!='/' : git_prefix+='/'
+    
+            contents = self.repo.get_contents("")
+            while contents:
+                file_content = contents.pop(0)
+                if file_content.type == "dir":
+                    contents.extend(self.repo.get_contents(file_content.path))
                 else:
-                    self.repo.create_file(git_file, "committing dashboards", 
-                                          content, branch=repo_branch)
-        self.filesUploaded.emit()
+                    file = file_content
+                    all_files.append(str(file).replace('ContentFile(path="','').replace('")',''))
+            
+            for root, subdirs, files in os.walk(constants.VI_EXPORT_PATH):
+                      
+                for filename in files:
+                    file_path = os.path.join(root, filename)
+    
+                    with open(file_path, 'r', encoding="utf-8" ) as f:
+                        content = f.read()
+                    
+                    # Upload to github
+                    
+                    git_file = git_prefix+os.path.basename(root)+'/'+ filename
+                    if git_file in all_files:
+                        contents = self.repo.get_contents(git_file)
+                        self.repo.update_file(contents.path, "committing dashboards", 
+                                              content, contents.sha, branch=repo_branch)
+                    else:
+                        self.repo.create_file(git_file, "committing dashboards", 
+                                              content, branch=repo_branch)
+            self.filesUploaded.emit()
+        except Exception as e:
+            throwError(str(e))
+    def downloadFiles(self, filenames, branch):
+        try:
+            shutil.rmtree(constants.VI_IMPORT_PATH)
+        except OSError as e:
+            throwError(str(e))
+        try:
+            # скачать из каждого в import, собрать в zip и отправить в платформу
+            for f in filenames:
+                
+                zipname=f['data'].split('/')[-2]
+                path=f['data'].replace(f['name'],'')
+
+                #save dash
+                gitFile=path+'dashboards.json'
+                content_encoded = self.repo.get_contents(gitFile, ref=branch).content
+                content = base64.b64decode(content_encoded)
+                filenameDash=constants.VI_IMPORT_PATH+'\\'+zipname+'\\'+'dashboards.json'
+                os.makedirs(os.path.dirname(filenameDash), exist_ok=True)
+                with open(filenameDash, 'wb') as f:
+                    f.write(content)
+                #save header    
+                gitFile=path+'__header.json'
+                content_encoded = self.repo.get_contents(gitFile, ref=branch).content
+                content = base64.b64decode(content_encoded)
+                filenameHeader=constants.VI_IMPORT_PATH+'\\'+zipname+'\\'+'__header.json'
+                with open(filenameHeader, 'wb') as f:
+                    f.write(content)
+                #name zip
+                filename=constants.VI_IMPORT_PATH+'\\'+zipname+'\\'+zipname+'.zip'
+                with zipfile.ZipFile(filename, 'a') as zipf:
+                    zipf.write(filenameDash, 'dashboards.json')
+                    zipf.write(filenameHeader, '__header.json')
+            self.filesDownloaded.emit()
+        except Exception as e:
+            throwError(str(e))
 # -----------------------------------------------------------------------------        
 class WorkerUser(QObject):
     finished = pyqtSignal()

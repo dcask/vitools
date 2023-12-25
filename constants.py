@@ -33,7 +33,8 @@ VI_TABPANEL_LOADER=os.path.join(base_path, "images\\loader.gif")
 VI_TABPANEL_REFRESH="Перезагрузить"
 VI_TABPANEL_ERROR_LINK="Ошибка связывания"
 
-VI_EXPORT_PATH=os.path.join(base_path, 'dashboards\\')
+VI_EXPORT_PATH=os.path.join(base_path, 'vidashboards\\')
+VI_IMPORT_PATH=os.path.join(base_path, 'viimport\\')
 VI_EXPORT_BUTTON_LABEL="Экспорт"
 VI_IMPORT_BUTTON_LABEL="Импорт"
 VI_IMPORT_CONNECT_BUTTON_LABEL="Подключить"

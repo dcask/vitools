@@ -41,20 +41,20 @@ def create_model(data, name):
     add_items_to_model(model.invisibleRootItem(), data)
     return model
 #-----------------------------------------------------------------------------
-def prepareDataFromGit(s, res, filename) -> dict:
-    path=s.split('/')
-    root=path.pop(0)
-    if root not in res: res[root]={}
-    if len(path)>0: 
-        res[root]=prepareDataFromGit('/'.join(path),res[root],filename)
-        parent_path=filename.split(root)[0]
-        if parent_path!='': 
-            res[root]['special_data']=parent_path+'/'+root
-        else:
-            res[root]['special_data']=root
-    else:
-        res[root]=filename
-    return res
+# def prepareDataFromGit(s, res, filename) -> dict:
+#     path=s.split('/')
+#     root=path.pop(0)
+#     if root not in res: res[root]={}
+#     if len(path)>0: 
+#         res[root]=prepareDataFromGit('/'.join(path),res[root],filename)
+#         parent_path=filename.split(root)[0]
+#         if parent_path!='': 
+#             res[root]['special_data']=parent_path+'/'+root
+#         else:
+#             res[root]['special_data']=root
+#     else:
+#         res[root]=filename
+#     return res
 def prepareDataFromPlatform(elem_list) -> dict:
     res={}
     for elem in elem_list:
@@ -186,12 +186,12 @@ class ViDashboardsExport(QWidget):
         self.worker.gotRepoBranch.connect(self.loadRepoBranch)
         # self.worker.gotRepoBranch.connect(self.loader.pauseAnimation)
         
-        self.worker.gotFiles.connect(self.loadFiles)
+        self.worker.gotFiles.connect(self.prepareGitDashboardTree)
         # self.worker.gotFiles.connect(self.loader.pauseAnimation)
         
         self.worker.filesUploaded.connect(self.onRepoChanged)
         # self.worker.filesUploaded.connect(self.loader.pauseAnimation)
-        
+        self.worker.filesDownloaded.connect(self.uploadLocalFolder2Platform)
         # self.loader.pauseAnimation()
         # self.loader.moveToThread(self.thread)
         self.thread.start()
@@ -250,7 +250,7 @@ class ViDashboardsExport(QWidget):
         # viplatform.visiology.saveIniFile({'githubkey':self.apiKey.text()})
         # self.preparePlatformDashboardTree()
 #-----------------------------------------------------------------------------
-    def loadFiles(self):
+    def prepareGitDashboardTree(self):
         
         
         self.modelGit=create_model(self.worker.files,"GitHub")
@@ -260,9 +260,9 @@ class ViDashboardsExport(QWidget):
             if not item.hasChildren():
                 item.setCheckable(True)
                 item.setCheckState(Qt.Unchecked)
-        
+        self.treeViewGit.expandAll()
         self.loader.stopAnimation()
-        print('stop at loadfiles')
+        print('stop at prepareGitDashboardTree')
         
 #------------------------------thread-----------------------------------------
     def loadRepoBranch(self):
@@ -334,10 +334,21 @@ class ViDashboardsExport(QWidget):
                 if not item.hasChildren():
                     item.setCheckable(True)
                     item.setCheckState(Qt.Unchecked)
+            self.treeViewPlatform.expandAll()
             
 #-----------------------------------------------------------------------------
     def onClickDownload(self):
-        self.get_checked()
+        d=self.get_checked(self.modelGit) 
+        self.worker.commandDownloadFiles.emit(d, self.branchCombo.currentText())
+        # #скачать из каждого в import, собрать в zip и отправить в платформу
+        # for
+        # content_encoded = repo.get_contents(urllib.parse.quote(path), ref=branch).content
+        # content = base64.b64decode(content_encoded)
+        # with zipfile.ZipFile(filepath, 'a') as zipf:
+
+        #     source_path = '/home/user/a/b/c/1.txt'
+        #     destination = 'foobar.txt'
+        #     zipf.write(source_path, destination)
 #--------------------------------------------------------------------------
     def onClickUpload(self):
         payload={"dashboardsGuidList":[],
@@ -377,28 +388,20 @@ class ViDashboardsExport(QWidget):
             self.worker.commandUploadFiles.emit(self.prefix.text(),self.branchCombo.currentText())
             # self.onRepoChanged()
 #------------------------------------------------------------------------------        
-    def uploadLocalFolder(self):
-        pass
-        # all_files = []
-        # git_prefix = self.prefix.text()
-        # if git_prefix[-1]!='/' : git_prefix+='/'
-        # repo_branch = self.branchCombo.currentText()
-        # contents = self.repo.get_contents("")
-        # while contents:
-        #     file_content = contents.pop(0)
-        #     if file_content.type == "dir":
-        #         contents.extend(self.repo.get_contents(file_content.path))
-        #     else:
-        #         file = file_content
-        #         all_files.append(str(file).replace('ContentFile(path="','').replace('")',''))
+    def uploadLocalFolder2Platform(self):
         
-        # for root, subdirs, files in os.walk(constants.VI_EXPORT_PATH):
+        
+        
+        for root, subdirs, files in os.walk(constants.VI_IMPORT_PATH):
                   
-        #     for filename in files:
-        #         file_path = os.path.join(root, filename)
-
-        #         with open(file_path, 'r', encoding="utf-8" ) as f:
-        #             content = f.read()
+            for filename in files:
+                file_path = os.path.join(root, filename)
+                name, file_extension = os.path.splitext(file_path)
+                if file_extension=='.zip':
+                    
+                    with open(file_path, 'rb') as fobj:
+                        data=fobj.read()
+                        ok,response = viplatform.visiology.sendFile('/migration/import',data)
                 
         #         # Upload to github
                 
