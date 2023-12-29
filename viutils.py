@@ -16,7 +16,8 @@ import base64
 from PyQt5.QtWidgets import QWidget, QLabel, QMessageBox
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QMovie, QIcon
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, pyqtSlot as Slot
+
 
 #------------------------------------------------------------------------------
 def loadIniFile()->dict:
@@ -72,21 +73,11 @@ class WorkerGit(QObject):
     gotFiles = pyqtSignal()
     filesUploaded =pyqtSignal()
     filesDownloaded =pyqtSignal()
-    commandLoadfiles= pyqtSignal()
-    commandGetRepos = pyqtSignal()
-    commandGetRepoBranch = pyqtSignal(str)
-    commandInit = pyqtSignal(str)
-    commandUploadFiles = pyqtSignal(str,str)
-    commandDownloadFiles = pyqtSignal(list,str)
+
     def __init__(self): 
         super(QObject, self).__init__()
-        self.commandInit.connect(self.init)
-        self.commandLoadfiles.connect(self.getFiles)
-        self.commandGetRepos.connect(self.getRepos)
-        self.commandGetRepoBranch.connect(self.getRepoBranch)
-        self.commandUploadFiles.connect(self.uploadFiles)
-        self.commandDownloadFiles.connect(self.downloadFiles)
-        
+
+    @Slot(str)    
     def init(self, key):
         self.repos=[]
         
@@ -96,7 +87,7 @@ class WorkerGit(QObject):
             self.initted.emit()
         except Exception as e:
             throwError(str(e))
-            
+    @Slot()        
     def getRepos(self):
         try:
             self.repos=self.git.get_user().get_repos()
@@ -104,6 +95,9 @@ class WorkerGit(QObject):
             throwError(str(e))
         print('gotRepos')    
         self.gotRepos.emit()
+        
+        
+    @Slot(str)
     def getRepoBranch(self, s):
         print('Get '+s)
         try:
@@ -112,6 +106,7 @@ class WorkerGit(QObject):
         except Exception as e:
             throwError(str(e))
         self.gotRepoBranch.emit()
+    @Slot()
     def getFiles(self):
         all_files = []
         try:
@@ -132,6 +127,8 @@ class WorkerGit(QObject):
             self.gotFiles.emit()
         except Exception as e:
             throwError(str(e))
+    
+    @Slot(str,str)
     def uploadFiles(self,git_prefix,repo_branch):
         all_files = []
         try:
@@ -169,6 +166,8 @@ class WorkerGit(QObject):
             self.filesUploaded.emit()
         except Exception as e:
             throwError(str(e))
+            
+    @Slot(list,str)
     def downloadFiles(self, filenames, branch):
         try:
             shutil.rmtree(constants.VI_IMPORT_PATH)
@@ -276,25 +275,15 @@ class LoadingGif(QWidget):
   
     def startAnimation(self):
         self.started=True
-        # geo = self.geometry()
-        # geo.moveCenter(self.parent.geometry().center())
-        # self.setGeometry(geo)
         self.movie.start() 
         print('start animation', self.parentWidget())
         # self.show()
-    # def pauseAnimation(self):
-    #     self.movie.stop() 
-    #     print('pause animation')
-    #     self.hide()
+    def pauseAnimation(self):
+        self.movie.stop() 
+        print('pause animation')
+        self.hide()
     def stopAnimation(self): 
         self.started=False
         self.movie.stop()
         print('stop animation')
         self.close()
-        self.deleteLater()
-
-        
-    
-    # def sho(self): 
-    #         self.movie.stop()
-    #         self.close()
