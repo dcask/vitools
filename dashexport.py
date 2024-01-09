@@ -18,7 +18,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QThread
 
-
+#-----------------------------------------------------------------------------
 def add_items_to_model(parent, elements):
     for key, value in elements.items():
         item = QStandardItem(key)
@@ -36,7 +36,7 @@ def create_model(data, name):
     model.setHorizontalHeaderLabels([name])
     add_items_to_model(model.invisibleRootItem(), data)
     return model
-
+#-----------------------------------------------------------------------------
 def prepareDataFromPlatform(elem_list) -> dict:
     res={}
     for elem in elem_list:
@@ -46,15 +46,15 @@ def prepareDataFromPlatform(elem_list) -> dict:
             res[elem['name']]=elem['guid']
     return res
     
-#-----------------------------------------------------------------------------
+#--------------------------  class -------------------------------------------
 class ViDashboardsExport(QWidget):
     commandLoadfiles= pyqtSignal()
     commandGetRepos = pyqtSignal()
     commandGetRepoBranch = pyqtSignal(str)
     commandInit = pyqtSignal(str)
-    commandUploadFiles = pyqtSignal(str,str)
+    commandUploadFiles = pyqtSignal(str,str,str)
     commandDownloadFiles = pyqtSignal(list,str)
-    
+#-----------------------------------------------------------------------------    
     def __init__(self, parent): 
         super(QWidget, self).__init__(parent) 
 
@@ -69,7 +69,7 @@ class ViDashboardsExport(QWidget):
         # self.apiKey.setText("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")
         self.connectButton = QPushButton(constants.VI_IMPORT_CONNECT_BUTTON_LABEL)
         self.connectButton.clicked.connect(self.onClickConnect)
-        
+        self.connectButton.setStyleSheet('QPushButton {background-color: #dd556d}')
         self.repoGroup = QWidget()
         self.repoGroupLayout =QVBoxLayout(self.repoGroup)
         self.repoLabel = QLabel()
@@ -90,7 +90,9 @@ class ViDashboardsExport(QWidget):
         self.prefixLabel = QLabel()
         self.prefixLabel.setText(constants.VI_EXPORT_PREFIX_LABEL)
         self.prefix = QLineEdit()
-        
+        self.prefixDeaultStyle = self.prefix.styleSheet() #original saved
+        self.prefix.textChanged.connect(self.onchangePrefix)
+
         self.treeViewPlatform = QTreeView(self)
         self.treeViewGit = QTreeView(self)
         self.treeViewGit.clicked.connect(self.onClickGitTree)
@@ -98,8 +100,16 @@ class ViDashboardsExport(QWidget):
         self.exportButton = QPushButton(constants.VI_EXPORT_BUTTON_LABEL, self)
         self.exportButton.clicked.connect(self.onClickUpload)
         
+        self.commentLabel = QLabel()
+        self.commentLabel.setText(constants.VI_EXPORT_COMMENT_LABEL)
+        self.comment = QLineEdit()
+        self.comment.setText(constants.VI_EXPORT_COMMENT_TEXT)
+                            
         self.importButton = QPushButton(constants.VI_IMPORT_BUTTON_LABEL, self)
         self.importButton.clicked.connect(self.onClickDownload)
+        
+        self.exportButton.setStyleSheet('QPushButton {background-color: #f5b25c}')
+        self.importButton.setStyleSheet('QPushButton {background-color: #76b6f9}')
         
         self.groupLayout.addWidget(self.apitokenLabel,      0, 0, 1, 1)
         self.groupLayout.addWidget(self.apiKey,             0, 1, 1, 6)
@@ -116,13 +126,14 @@ class ViDashboardsExport(QWidget):
         
         self.groupLayout.addWidget(self.exportButton,       4, 0, 1, 4)
         self.groupLayout.addWidget(self.importButton,       4, 4, 1, 4)
+        
+        self.groupLayout.addWidget(self.commentLabel,       5, 0, 1, 1)
+        self.groupLayout.addWidget(self.comment,            5, 1, 1, 3)
+        
         self.centralwidgetLayout.addWidget(self.groupWidget)
           
-        # self.importButton.setEnabled(False)
-        # self.exportButton.setEnabled(False) 
 #-----------------------------------------------------------------------------
     def closeEvent(self, event):
-        print('destroyed')
         self.thread.quit()
 #-----------------------------------------------------------------------------
     def onClickGitTree(self, modelIndex):
@@ -189,22 +200,20 @@ class ViDashboardsExport(QWidget):
         viplatform.visiology.saveIniFile({'githubkey':self.apiKey.text()})
         self.preparePlatformDashboardTree()
         self.loader.stopAnimation()
-        
+#-----------------------------------------------------------------------------        
     def connectThread(self):
 
         self.exportButton.setEnabled(True)
         self.commandGetRepos.emit()
-
+#-----------------------------------------------------------------------------
     def onClickConnect(self):
-        
         self.loader= viutils.LoadingGif(self)
-        print('start at onclickconnect')
         self.commandInit.emit(self.apiKey.text())
 #-----------------------------------------------------------------------------
     def prepareGitDashboardTree(self):
         
         
-        self.modelGit=create_model(self.worker.files,"GitHub") #here dict
+        self.modelGit=create_model(self.worker.files,constants.VI_IMPORT_TREE_LABEL) #here dict
         self.treeViewGit.setModel(self.modelGit)
         root = self.modelGit.invisibleRootItem()
         for item in self.iterItems(root):
@@ -213,16 +222,14 @@ class ViDashboardsExport(QWidget):
                 item.setCheckState(Qt.Unchecked)
         self.treeViewGit.expandAll()
         self.loader.stopAnimation()
-        print('stop at prepareGitDashboardTree')
         
 #------------------------------thread-----------------------------------------
     def loadRepoBranch(self):
-        # self.loader.stopAnimation()
-        # print('stop at loadRepoBranch')
         branches = self.worker.branches #here list
         self.branchCombo.clear()
         self.branchCombo.addItems([str(i).replace('Branch(name="','').replace('")','') for i in branches])
-        # print('start at loasdrepobranch')
+        if self.loader.started:
+            self.loader.stopAnimation()
         self.loader= viutils.LoadingGif(self.groupWidget)
         
         self.commandLoadfiles.emit()
@@ -242,7 +249,7 @@ class ViDashboardsExport(QWidget):
                                                         viplatform.visiology.headers, payload)
         if ok:
             dashboards=prepareDataFromPlatform(response.json()['result']['treeItems'])
-            self.modelPlatform=create_model(dashboards,"Платформа")
+            self.modelPlatform=create_model(dashboards,constants.VI_EXPORT_TREE_LABEL)
             self.treeViewPlatform.setModel(self.modelPlatform)
             root = self.modelPlatform.invisibleRootItem()
             for item in self.iterItems(root):
@@ -253,11 +260,18 @@ class ViDashboardsExport(QWidget):
             
 #-----------------------------------------------------------------------------
     def onClickDownload(self):
+        if self.loader.started:
+            self.loader.stopAnimation()
         self.loader= viutils.LoadingGif(self.groupWidget)
         d=self.get_checked(self.modelGit) 
         self.commandDownloadFiles.emit(d, self.branchCombo.currentText())
 #--------------------------------------------------------------------------
     def onClickUpload(self):
+        if self.prefix.text()=='':
+            self.prefix.setStyleSheet("border: 1px solid red;") #changed
+            return
+        if self.loader.started:
+            self.loader.stopAnimation()
         self.loader= viutils.LoadingGif(self.groupWidget)
         payload={"dashboardsGuidList":[],
                 "dataSources":[],
@@ -290,7 +304,8 @@ class ViDashboardsExport(QWidget):
             os.remove(filename)
         if len(dashList)>0:
                         
-            self.commandUploadFiles.emit(self.prefix.text(),self.branchCombo.currentText())
+            self.commandUploadFiles.emit(self.prefix.text(),self.branchCombo.currentText(),
+                                         self.comment.text())
 
 #------------------------------------------------------------------------------        
     def uploadLocalFolder2Platform(self):
@@ -307,3 +322,6 @@ class ViDashboardsExport(QWidget):
                         ok,response = viplatform.visiology.sendFile('/migration/import',data)
                         
         self.loader.stopAnimation()
+#-----------------------------------------------------------------------------
+    def onchangePrefix(self):
+        self.prefix.setStyleSheet(self.prefixDeaultStyle)

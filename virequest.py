@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5 import QtGui
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
+#------------------------------------------------------------------------------
 def throwError(message):
     msg = QMessageBox()
     msg.setIcon(QMessageBox.Critical)

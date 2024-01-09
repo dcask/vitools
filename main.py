@@ -13,7 +13,7 @@ from tabpanel import ViTabPanel
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import QSize, QTimer, QThread
-from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QWidget
+from PyQt5.QtWidgets import QVBoxLayout, QWidget
 
 # ------- Main Window Class
 class MainWindow(QMainWindow):
@@ -25,14 +25,10 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(QSize(constants.VI_WINDOW_WIDTH, constants.VI_WINDOW_HEIGHT))    
         self.setWindowTitle(constants.VI_WINDOW_NAME)
         self.setWindowIcon(QtGui.QIcon(constants.VI_WINDOW_ICON_PATH))
-        self.refreshButton = QPushButton(constants.VI_TABPANEL_REFRESH, self.centralwidget)
-        self.refreshButton.setStyleSheet('QPushButton {background-color: #3e1391;color:white;}')
         self.viTabPanel=ViTabPanel(self.centralwidget)
         self.centralLayout= QVBoxLayout(self.centralwidget)
-        self.centralLayout.addWidget(self.refreshButton)
         self.centralLayout.addWidget(self.viTabPanel)
         self.setCentralWidget(self.centralwidget)
-        self.refreshButton.setDisabled(True)
     #-------------------- press login ------------------
     def login(self):
         loginDlg = ViLogin(self)
@@ -45,13 +41,10 @@ class MainWindow(QMainWindow):
                 viplatform.visiology.windowCentralWidget=self.centralwidget
                 self.clickRefresh()
                 self.refreshToken()
-                self.refreshButton.setDisabled(False)
-                self.refreshButton.clicked.connect(self.clickRefresh)
             else:
                 viutils.throwError(viplatform.visiology.errorText)
                 QTimer.singleShot(10, self.login)
     def clickRefresh(self):
-        
         self.loader= viutils.LoadingGif(self.centralwidget)
         self.thread = QThread()
         self.workerTokenA = viutils.WorkerToken()
@@ -93,6 +86,7 @@ class MainWindow(QMainWindow):
         self.thread.finished.connect(
             lambda: self.loader.stopAnimation()
         )
+        
     def refreshToken(self):
         self.threadToken = QThread()
         self.workerToken = viutils.WorkerToken()
@@ -112,7 +106,6 @@ class MainWindow(QMainWindow):
             lambda: self.viTabPanel.tab1.refreshView()
         )
     def closeEvent(self, event):
-        print('main closed')
         self.viTabPanel.close()
         event.accept()
     def show(self):

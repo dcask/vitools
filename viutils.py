@@ -30,6 +30,7 @@ def loadIniFile()->dict:
         except :
             pass
     return data
+#------------------------------------------------------------------------------
 def prepareDataFromGit(s, res, filename) -> dict:
     path=s.split('/')
     root=path.pop(0)
@@ -44,7 +45,7 @@ def prepareDataFromGit(s, res, filename) -> dict:
     else:
         res[root]=filename
     return res
-
+#------------------------------------------------------------------------------
 def throwError(message):
     msg = QMessageBox()
     msg.setIcon(QMessageBox.Critical)
@@ -53,7 +54,7 @@ def throwError(message):
     msg.setWindowTitle("Error")
     msg.setWindowIcon(QIcon(constants.VI_WINDOW_ICON_PATH))
     msg.exec_()
-    
+#------------------------------------------------------------------------------    
 def throwInfo(message):
     msg = QMessageBox()
     msg.setIcon(QMessageBox.Information)
@@ -73,39 +74,37 @@ class WorkerGit(QObject):
     gotFiles = pyqtSignal()
     filesUploaded =pyqtSignal()
     filesDownloaded =pyqtSignal()
-
+#------------------------------------------------------------------------------
     def __init__(self): 
         super(QObject, self).__init__()
-
+#------------------------------------------------------------------------------
     @Slot(str)    
     def init(self, key):
         self.repos=[]
         
         try:
             self.git = Github(key)
-            print('initted')
             self.initted.emit()
         except Exception as e:
             throwError(str(e))
+#------------------------------------------------------------------------------
     @Slot()        
     def getRepos(self):
         try:
             self.repos=self.git.get_user().get_repos()
         except Exception as e:
             throwError(str(e))
-        print('gotRepos')    
         self.gotRepos.emit()
-        
-        
+#------------------------------------------------------------------------------        
     @Slot(str)
     def getRepoBranch(self, s):
-        print('Get '+s)
         try:
             self.repo = self.git.get_repo(s)
             self.branches = self.repo.get_branches()
         except Exception as e:
             throwError(str(e))
         self.gotRepoBranch.emit()
+#------------------------------------------------------------------------------        
     @Slot()
     def getFiles(self):
         all_files = []
@@ -127,9 +126,9 @@ class WorkerGit(QObject):
             self.gotFiles.emit()
         except Exception as e:
             throwError(str(e))
-    
-    @Slot(str,str)
-    def uploadFiles(self,git_prefix,repo_branch):
+#------------------------------------------------------------------------------    
+    @Slot(str,str, str)
+    def uploadFiles(self,git_prefix,repo_branch, commit_comment):
         all_files = []
         try:
             print('prefix', git_prefix,repo_branch)
@@ -152,21 +151,19 @@ class WorkerGit(QObject):
     
                     with open(file_path, 'r', encoding="utf-8" ) as f:
                         content = f.read()
-                    
-                    # Upload to github
-                    
+
                     git_file = git_prefix+os.path.basename(root)+'/'+ filename
                     if git_file in all_files:
                         contents = self.repo.get_contents(git_file)
-                        self.repo.update_file(contents.path, "committing dashboards", 
+                        self.repo.update_file(contents.path, commit_comment, 
                                               content, contents.sha, branch=repo_branch)
                     else:
-                        self.repo.create_file(git_file, "committing dashboards", 
+                        self.repo.create_file(git_file, commit_comment, 
                                               content, branch=repo_branch)
             self.filesUploaded.emit()
         except Exception as e:
             throwError(str(e))
-            
+#------------------------------------------------------------------------------            
     @Slot(list,str)
     def downloadFiles(self, filenames, branch):
         try:
@@ -174,13 +171,11 @@ class WorkerGit(QObject):
         except OSError as e:
             throwError(str(e))
         try:
-            # скачать из каждого в import, собрать в zip и отправить в платформу
             for f in filenames:
                 
                 zipname=f['data'].split('/')[-2]
                 path=f['data'].replace(f['name'],'')
 
-                #save dash
                 gitFile=path+'dashboards.json'
                 content_encoded = self.repo.get_contents(gitFile, ref=branch).content
                 content = base64.b64decode(content_encoded)
@@ -188,14 +183,13 @@ class WorkerGit(QObject):
                 os.makedirs(os.path.dirname(filenameDash), exist_ok=True)
                 with open(filenameDash, 'wb') as f:
                     f.write(content)
-                #save header    
+
                 gitFile=path+'__header.json'
                 content_encoded = self.repo.get_contents(gitFile, ref=branch).content
                 content = base64.b64decode(content_encoded)
                 filenameHeader=constants.VI_IMPORT_PATH+'\\'+zipname+'\\'+'__header.json'
                 with open(filenameHeader, 'wb') as f:
                     f.write(content)
-                #name zip
                 filename=constants.VI_IMPORT_PATH+'\\'+zipname+'\\'+zipname+'.zip'
                 with zipfile.ZipFile(filename, 'a') as zipf:
                     zipf.write(filenameDash, 'dashboards.json')
@@ -203,87 +197,83 @@ class WorkerGit(QObject):
             self.filesDownloaded.emit()
         except Exception as e:
             throwError(str(e))
-# -----------------------------------------------------------------------------        
+# -----------------------class-------------------------------------------------        
 class WorkerUser(QObject):
     finished = pyqtSignal()
     catcherror = pyqtSignal(str)
-    
+#------------------------------------------------------------------------------    
     def run(self):
-        # viplatform.visiology.clearData()
+
         if viplatform.visiology.checkPlatform():
             viplatform.visiology.getUsers()
         if viplatform.visiology.hasError:
             self.catcherror.emit(viplatform.visiology.errorText) 
         self.finished.emit()
-
+#---------------------class---------------------------------------------------
 class WorkerToken(QObject):
     finished = pyqtSignal()
     catcherror = pyqtSignal(str)
-
+#------------------------------------------------------------------------------
     def run(self):
-        # viplatform.visiology.clearData()
+
         if viplatform.visiology.checkPlatform():
             viplatform.visiology.getToken()
         if viplatform.visiology.hasError:
             self.catcherror.emit(viplatform.visiology.errorText) 
         self.finished.emit()
+#------------------------class-------------------------------------------------
 class WorkerLicence(QObject):
     finished = pyqtSignal()
     catcherror = pyqtSignal(str)
 
     def run(self):
-        # viplatform.visiology.clearData()
+
         if viplatform.visiology.checkPlatform():
             viplatform.visiology.getLicense()
         if viplatform.visiology.hasError:
             self.catcherror.emit(viplatform.visiology.errorText) 
         self.finished.emit()
-
+#---------------class----------------------------------------------------------
 class WorkerLoki(QObject):
     finished = pyqtSignal()
     catcherror = pyqtSignal(str)
-
+#------------------------------------------------------------------------------
     def run(self):
-        # viplatform.visiology.clearData()
+
         if viplatform.visiology.checkPlatform():
             viplatform.visiology.getDashboards()
             viplatform.visiology.getLokiDashboardRequests()
         if viplatform.visiology.hasError:
             self.catcherror.emit(viplatform.visiology.errorText) 
         self.finished.emit()
-        
+#------------------class------------------------------------------------------        
 class LoadingGif(QWidget): 
-    # start
+#------------------------------------------------------------------------------
     def __init__(self, parent=None):
         super(QWidget, self).__init__(viplatform.visiology.windowCentralWidget)#
         self.setFixedSize(50,50)
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.CustomizeWindowHint)
-        # if parent:
+
         geo = self.geometry()
-        print("parent:", parent)
         geo.moveCenter(viplatform.visiology.windowCentralWidget.geometry().center())
-        print(geo.x(),geo.y())
         self.setGeometry(geo)
         self.started=True
-        
-        
+
         self.label_animation = QLabel(self)
         self.movie = QMovie(constants.VI_TABPANEL_LOADER) 
         self.label_animation.setMovie(self.movie) 
         self.startAnimation() 
         self.show()
-  
+#------------------------------------------------------------------------------  
     def startAnimation(self):
         self.started=True
         self.movie.start() 
-        print('start animation', self.parentWidget())
-        # self.show()
+#------------------------------------------------------------------------------
     def pauseAnimation(self):
         self.movie.stop() 
-        print('pause animation')
         self.hide()
+#------------------------------------------------------------------------------        
     def stopAnimation(self): 
         self.started=False
         self.movie.stop()
-        print('stop animation')
         self.close()

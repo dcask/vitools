@@ -10,5 +10,10 @@
         "user": "admin",
         "current": false,
         "githubkey": "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"
+    },
+    "https://demo.visiology.su": {
+        "githubkey": "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",
+        "user": "Admin",
+        "current": false
     }
 }

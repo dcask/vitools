@@ -1,0 +1,46 @@
+{
+    "get viqube metadata": {
+        "METHOD": "GET",
+        "ENDPOINT": "/viqube/metadata",
+        "HEADERS": {
+            "Content-type": "application/json",
+            "X-API-VERSION": "3.12",
+            "Authorization": "Bearer [TOKEN]"
+        },
+        "BODY": {},
+        "CORRECT": true
+    },
+    "get viqube loaders": {
+        "METHOD": "GET",
+        "ENDPOINT": "/viqube/loaders",
+        "HEADERS": {
+            "Content-type": "application/json",
+            "X-API-VERSION": "3.12",
+            "Authorization": "Bearer [TOKEN]"
+        },
+        "BODY": {},
+        "CORRECT": true
+    },
+    "get sqlbackend": {
+        "METHOD": "GET",
+        "ENDPOINT": "/viqube/sqlbackend",
+        "HEADERS": {
+            "Content-type": "application/json",
+            "X-API-VERSION": "3.12",
+            "Authorization": "Bearer [TOKEN]"
+        },
+        "BODY": {},
+        "CORRECT": true
+    },
+    "get smart-forms measure groups": {
+        "METHOD": "GET",
+        "ENDPOINT": "/datacollection/api/measuregroups",
+        "HEADERS": {
+            "Content-type": "application/json",
+            "X-API-VERSION": "2.0",
+            "Authorization": "Bearer [TOKEN]"
+        },
+        "BODY": {},
+        "CORRECT": true
+    }
+}
