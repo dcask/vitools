@@ -195,7 +195,7 @@ class ViApiTab(QWidget):
     def grabData(self):
         body={}
         try:
-            if self.comboType.currentText() in ['PUT','POST']:
+            if self.comboType.currentText() in ['PUT','POST','DELETE']:
                 body=loads(self.bodyEdit.toPlainText() )   
         except Exception as e:
             throwError(constants.VI_API_BODY_ERROR+str(e))

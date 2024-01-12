@@ -192,8 +192,16 @@ class ViLokiTab(QWidget):
 #-------------------------- save excel -------------------------
     def saveLokiExcel(self, excel_filename, sheet_name):
         df = DataFrame(self.data)
+<<<<<<< Updated upstream
         df.to_excel(excel_filename, sheet_name=sheet_name, index=False, engine='openpyxl')
 #------------------- load from loki
+=======
+        try:
+            df.to_excel(excel_filename, sheet_name=sheet_name, index=False, engine='openpyxl')
+        except Exception as e:
+            viutils.throwError(str(e))
+#------------------- load from loki -----------------------------------------
+>>>>>>> Stashed changes
     def loadLoki(self):
         self.data=[]
         if self.lokiKey.text()=='':

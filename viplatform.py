@@ -5,6 +5,10 @@ Created on Fri Dec  1 09:07:42 2023
 @author: dcask
 """
 import requests
+<<<<<<< Updated upstream
+=======
+from viutils import loadIniFile, throwError
+>>>>>>> Stashed changes
 from urllib.parse import urlencode
 # import constants
 from time import time
@@ -321,6 +325,7 @@ class ViPlatform():
         sheet_name='Sheet1'
         flag = True
         errorlog=''
+<<<<<<< Updated upstream
         # try:
         edata = read_excel(excel_filename, na_filter=False, sheet_name=sheet_name, header=0,
                    converters={'UserName':str,'Password':str,'UserName':str,'Email':str,'GivenName':str,'FamilyName':str,'MiddleName':str, 'Roles':str})
@@ -347,15 +352,45 @@ class ViPlatform():
         #     print(self.errorText)
         #     self.hasError=True
         if len(errorlog): self.errorText=errorlog
+=======
+        try:
+            edata = read_excel(excel_filename, na_filter=False, sheet_name=sheet_name, header=0,
+                       converters={'UserName':str,'Password':str,'UserName':str,'Email':str,'GivenName':str,'FamilyName':str,'MiddleName':str, 'Roles':str})
+            edata.replace('nan', '')
+            logins = edata['UserName'].tolist()
+            passwords =  edata['Password'].tolist()
+            emails =  edata['Email'].tolist()
+            givennames= edata['GivenName'].tolist()
+            familynames= edata['FamilyName'].tolist()
+            middlenames= edata['MiddleName'].tolist()
+            roles=edata['Roles'].tolist()
+        
+
+            for alogin,apass,aemail,agivenname,afamilyname,amiddlename,arole in zip(logins,passwords,emails,givennames, familynames, middlenames, roles):
+                rolesList=arole.split(',')
+                if alogin!='' and apass!='' and afamilyname!='':
+                    if 'Все авторизованные пользователи' not in rolesList:
+                        rolesList.append('Все авторизованные пользователи')
+                    if  not self.createUser(alogin, apass, aemail, agivenname,amiddlename,afamilyname, rolesList):
+                        errorlog+=alogin+" не создан по причине "+self.errorText+"\n"
+                        flag = False
+            if len(errorlog): self.errorText=errorlog
+        except Exception as e:
+            throwError(str(e))  
+            flag=False
+>>>>>>> Stashed changes
         return flag
 #-------------------------- save excel -------------------------
     def saveExcel(self, excel_filename, sheet_name):
         df = DataFrame.from_dict(self.userList)
         df = df.drop(df[df['IsBuiltIn']].index)
-        df=df.drop(columns=['IsBuiltIn','IsInfrastructure','useLdap','IsActive', 'LockoutEndDate', 'AccessFailedCount', 'IsBlocked', 'LastLogin', 'Created'])
+        # df=df.drop(columns=['IsBuiltIn','IsInfrastructure','useLdap','IsActive', 'LockoutEndDate', 'AccessFailedCount', 'IsBlocked', 'LastLogin', 'Created'])
+        df=df.drop(columns=['IsBuiltIn','IsInfrastructure','useLdap','IsActive', 'LockoutEndDate', 'AccessFailedCount', 'IsBlocked'])
         df.insert(1,'Password','')
-        
-        df.to_excel(excel_filename, sheet_name=sheet_name, index=False, engine='openpyxl')
+        try:
+            df.to_excel(excel_filename, sheet_name=sheet_name, index=False, engine='openpyxl')
+        except Exception as e:
+            throwError(str(e))
 
 #--------------------создать пользователя и дать ему роль----------------------        
     def deactivateUser(self, userName):

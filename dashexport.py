@@ -221,6 +221,7 @@ class ViDashboardsExport(QWidget):
             shutil.rmtree(constants.VI_EXPORT_PATH)
         except OSError as e:
             print("Error: %s - %s." % (e.filename, e.strerror))
+<<<<<<< Updated upstream
         for chb in self.checkBoxList:
             if chb.isChecked():
                 gid,name=chb.text().split('->')
@@ -240,6 +241,32 @@ class ViDashboardsExport(QWidget):
                     s.write(name)
                 os.remove(filename)
         self.git()
+=======
+        dashList = self.get_checked(self.modelPlatform)
+        for d in dashList:
+            
+            payload["dashboardsGuidList"]=[d['data']]
+            
+            filename=constants.VI_EXPORT_PATH+'\\'+d['data']+'\\'+d['data']+'.zip'
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
+            ok_ver,response = viplatform.visiology.sendJSON('POST','/migration/export',
+                                                            viplatform.visiology.headers, payload)     
+            data = response.content
+            with open(filename, 'wb') as s:
+                s.write(data)
+            with zipfile.ZipFile(filename, 'r') as zip_ref:
+                zip_ref.extractall(os.path.dirname(filename))
+            with open(os.path.dirname(filename)+'/name.txt', 'w',encoding="utf-8") as s:
+                s.write(d['name'])
+            os.remove(filename)
+        if len(dashList)>0:
+                        
+            self.commandUploadFiles.emit(self.prefix.text(),self.branchCombo.currentText(),
+                                         self.comment.text())
+
+#------------------------------------------------------------------------------        
+    def uploadLocalFolder2Platform(self):
+>>>>>>> Stashed changes
         
     def git(self):
         
