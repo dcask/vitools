@@ -12,7 +12,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QWidget,  QVBoxLayout, QLabel, QGridLayout, QPushButton
 from PyQt5.QtWidgets import QCheckBox, QComboBox, QScrollArea, QSpacerItem
 from PyQt5.QtCore import Qt
-
+#------------------------------------------------------------------------------
 class ViDbAccessTab(QWidget):
     def __init__(self, parent): 
         super(QWidget, self).__init__(parent) 
@@ -21,14 +21,13 @@ class ViDbAccessTab(QWidget):
         self.groupWidget = QWidget(self)
         self.groupLayout = QGridLayout(self.groupWidget)
         
-        #Role List
         self.checkBoxList=[]
         self.rolesLabel = QLabel()
         self.rolesLabel.setText(constants.VI_ACCESS_ROLES_LABEL)
         
         self.combo_box = QComboBox()
         self.combo_box.currentTextChanged.connect(self.on_combobox_changed)
-        #DB list
+
         self.scrollArea = QScrollArea(self)
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidget = QWidget()
@@ -42,14 +41,14 @@ class ViDbAccessTab(QWidget):
         self.groupLayout.addWidget(self.scrollArea, 2, 0, 2, 2)
         
         self.centralwidgetLayout.addWidget(self.groupWidget)
-        #self.centralwidgetLayout.addWidget(self.scrollArea)
         
         self.linkButton = QPushButton(constants.VI_ACCESS_BUTTON_LABEL, self)
+        self.linkButton.setStyleSheet('QPushButton {background-color: #3e1391;color:white;}')
         self.linkButton.clicked.connect(self.clickLinkMethod)
 
         self.linkButton.setEnabled(False)
         self.groupLayout.addWidget(self.linkButton, 5, 1, 1, 1)
-        
+#------------------------------------------------------------------------------        
     def clickLinkMethod(self):  
         
         dbs=[]
@@ -62,16 +61,15 @@ class ViDbAccessTab(QWidget):
         else:
             throwInfo("Успешно")
         
-        
+#------------------------------------------------------------------------------        
     def init(self):
+        if viplatform.visiology.hasError: return
         for i in self.checkBoxList: i.deleteLater()
         self.checkBoxList=[]
         self.combo_box.clear()
         self.combo_box.addItems(viplatform.visiology.getAllRoles())
-
         dbs=viplatform.visiology.getDatabases()
         # print(dbs)
-        
         for db in dbs:
             cb=QCheckBox(self)
             cb.setText(db)
@@ -79,7 +77,7 @@ class ViDbAccessTab(QWidget):
             self.scrollAreaWidgetLayout.insertWidget(count, cb)
             self.checkBoxList.append(cb)
         self.linkButton.setEnabled(True)
-        
+#------------------------------------------------------------------------------        
     def on_combobox_changed(self):
         t=self.combo_box.currentText()
         for c in self.checkBoxList: c.setChecked(False)

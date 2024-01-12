@@ -21,7 +21,7 @@ VI_SERTIFICATE_VERIFY=False
 VI_WINDOW_WIDTH=400
 VI_WINDOW_HEIGHT=320
 VI_WINDOW_ICON_PATH=os.path.join(base_path, 'images\\logo.png')
-VI_WINDOW_NAME="viTools 1.02"
+VI_WINDOW_NAME="viTools 1.05"
 
 VI_TABPANEL_TAB1_NAME="API"
 VI_TABPANEL_TAB2_NAME="Пользователи"
@@ -29,13 +29,26 @@ VI_TABPANEL_TAB3_NAME="Описание"
 VI_TABPANEL_TAB4_NAME="Доступ к базам"
 VI_TABPANEL_TAB5_NAME="Просмотры дашбордов"
 VI_TABPANEL_TAB6_NAME="GitHub"
+VI_TABPANEL_TAB7_NAME="Вход пользователей"
+VI_TABPANEL_TAB8_NAME="Контейнеры"
+VI_TABPANEL_TAB9_NAME="Монитор"
 VI_TABPANEL_LOADER=os.path.join(base_path, "images\\loader.gif")
 VI_TABPANEL_REFRESH="Перезагрузить"
 VI_TABPANEL_ERROR_LINK="Ошибка связывания"
 
-VI_EXPORT_PATH=os.path.join(base_path, 'dashboards\\')
+VI_EXPORT_PATH=os.path.join(base_path, 'vidashboards\\')
+VI_IMPORT_PATH=os.path.join(base_path, 'viimport\\')
 VI_EXPORT_BUTTON_LABEL="Экспорт"
 VI_IMPORT_BUTTON_LABEL="Импорт"
+VI_EXPORT_TREE_LABEL='Платформа'
+VI_EXPORT_COMMENT_LABEL='Комментарий'
+VI_EXPORT_COMMENT_TEXT='committing dashboadrs'
+VI_IMPORT_TREE_LABEL='GitHub'
+VI_IMPORT_CONNECT_BUTTON_LABEL="Подключить"
+VI_EXPORT_KEY_LABEL="GitHub токен"
+VI_EXPORT_REPO_LABEL="Репозиторий"
+VI_EXPORT_BRANCH_LABEL="Ветка"
+VI_EXPORT_PREFIX_LABEL="Импорт в "
 VI_USER_FIND_LABEL="Найти в "
 VI_USER_LOAD='Загрузить XLS'
 VI_USER_SAVE='Сохранить XLS'
@@ -47,6 +60,10 @@ VI_USER_SAVEAS_LABEL="Сохранить как"
 VI_USER_LOADAS_LABEL="Загрузить"
 VI_USER_TOTAL_LABEL="Показано "
 VI_USER_OF_LABEL=" из "
+
+VI_SHELL_MESSAGE_LABEL='Отправить сообщение:'
+VI_SHELL_SEND_BUTTON_LABEL='Отправить'
+VI_SHELL_REFRESH_BUTTON_LABEL='Обновить'
 
 VI_LOGIN_TITLE="Подключиться к платформе"
 VI_LOGIN_WINDOW_WIDTH=300

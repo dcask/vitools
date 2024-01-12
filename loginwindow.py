@@ -7,11 +7,14 @@ Created on Thu Nov 30 21:57:53 2023
 
 
 import constants
+from viutils import loadIniFile
 from json import load, dump
 from PyQt5.QtWidgets import QComboBox, QDialog, QWidget,  QVBoxLayout, QLabel, QGridLayout, QLineEdit, QPushButton
 from PyQt5 import QtGui
 from PyQt5.QtCore import QSize, Qt
 
+
+#-------------------------------------- class --------------------------------
 class ViLogin(QDialog):
     def __init__(self, parent): 
         super(QWidget, self).__init__(parent) 
@@ -53,6 +56,7 @@ class ViLogin(QDialog):
        
         #Button
         self.loginButton = QPushButton(constants.VI_LOGIN_BUTTON_LABEL, self)
+        self.loginButton.setStyleSheet('QPushButton {background-color: #f5b25c}')
         self.loginButton.clicked.connect(self.clickLoginMethod)
     
         self.groupLayout.addWidget(self.urlLabel, 0, 0, 1, 1)
@@ -64,15 +68,9 @@ class ViLogin(QDialog):
         self.groupLayout.addWidget(self.passwordInput, 2, 1, 1, 1)  
         self.groupLayout.addWidget(self.loginButton, 3, 1, 1, 1)
         
-        
-        with open('vitools.json', 'a+') as f:
-            pass
-        with open('vitools.json','r') as f:
-            try:
-                self.urldata=load(f)
-                self.urlInput.addItems([x for x in self.urldata])
-            except :
-                self.urldata={}
+
+        self.urldata=loadIniFile()
+        self.urlInput.addItems([x for x in self.urldata])
         self.centralwidgetLayout.addWidget(self.groupWidget)
         for i in self.urldata:
             if 'current' in self.urldata[i]:
@@ -80,7 +78,7 @@ class ViLogin(QDialog):
                     self.urlInput.setCurrentText(i)
         if not len(self.urldata):
             self.urlInput.addItems([constants.VI_LOGIN_URL])
-        
+#----------------------------------------------------------------------------        
     def clickLoginMethod(self):
 
         self.baseURL=self.urlInput.currentText().strip()
@@ -94,16 +92,19 @@ class ViLogin(QDialog):
             self.baseURL=self.baseURL[:-1]
         
         self.accept()
+#----------------------------------------------------------------------------
     def saveURL(self):
         
         if self.baseURL not in self.urldata:
             self.urldata[self.baseURL]={'LOKI':''}
+            self.urldata[self.baseURL]={'githubkey':''}
         self.urldata[self.baseURL]['user']=self.username
         for i in self.urldata:
             self.urldata[i]['current']=False
         self.urldata[self.baseURL]['current']=True
         with open('vitools.json', 'w', encoding='utf-8') as f:
             dump(self.urldata, f, ensure_ascii=False, indent=4)
+#----------------------------------------------------------------------------
     def on_combobox_changed(self):
         if self.urlInput.currentText() in self.urldata:
             self.loginInput.setText(self.urldata[self.urlInput.currentText()]['user'])

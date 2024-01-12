@@ -8,14 +8,13 @@ Created on Fri Dec  1 23:54:40 2023
 import constants
 import viplatform
 import viutils
-# from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QWidget,QTableView, QLabel, QGridLayout, QLineEdit, QPushButton
 from PyQt5.QtWidgets import QAbstractItemView,QHeaderView
 from PyQt5.QtWidgets import QComboBox, QFileDialog
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QAbstractTableModel, QThread
 from PyQt5.QtCore import QVariant, pyqtSlot, QRegExp, QItemSelection, QItemSelectionModel
 from PyQt5.QtGui import QColor, QBrush
-
+#------------------------------------------------------------------------------
 class TableModel(QAbstractTableModel):
     def __init__(self, data, headers):
         super().__init__()
@@ -55,24 +54,10 @@ class TableModel(QAbstractTableModel):
         self._data = self._data.sort_values(self.headers[Ncol],
                                           ascending=order == Qt.AscendingOrder)
         self.layoutChanged.emit()
-    # def setData(self, index, value, role=Qt.EditRole):
-    #     if not index.isValid():
-    #         return False
-    #     if role == Qt.CheckStateRole and index.column() == 0:
-    #         self._data[index.row()][index.column()] = not self._data[index.row()][index.column()]
-    #         self.dataChanged.emit(index, index, [role])
-    #         return True
-    #     return False
-    
-    # def flags(self, index):
-    #     if not index.isValid():
-    #         return Qt.NoItemFlags
-    #     if index.column() == 0 :
-    #         return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
-    #     return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
     def columnCount(self, index):
-        return len(self._data[0])
+        #return len(self._data[0]) if len(self._data)>0 else 0
+        return len(self.hheaders)
     
     def headerData(self, section, orientation, role):           
         if role == Qt.DisplayRole:
@@ -82,7 +67,7 @@ class TableModel(QAbstractTableModel):
     
     def item(self, row, column):
         return QVariant()
-
+#------------------------------------------------------------------------------
 class ViUserTab(QWidget):
     def __init__(self, parent): 
         super(QWidget, self).__init__(parent)
@@ -135,15 +120,13 @@ class ViUserTab(QWidget):
         self.gridLayout.addWidget(self.saveXLSbutton,        3, 4, 1, 1)
         self.gridLayout.addWidget(self.deactivatebutton,     3, 5, 1, 1)
         
-        
-        # self.centralwidgetLayout.addWidget(self.centralwidget)
         self.setLayout(self.gridLayout)
         
         self.view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
         self.view.setSelectionMode(QAbstractItemView.MultiSelection)
         self.verticalHeader = self.view.verticalHeader()
-    
+#------------------------------------------------------------------------------    
     @pyqtSlot(str)
     def on_lineEdit_textChanged(self, text):
         search = QRegExp(    text,
@@ -152,15 +135,13 @@ class ViUserTab(QWidget):
                                     )
         self.proxy.setFilterRegExp(search)
         self.total.setText(str(self.view.model().rowCount())+constants.VI_USER_OF_LABEL+str(len(viplatform.visiology.userList)))
-    # @pyqtSlot(int)
-    # def on_view_horizontalHeader_sectionClicked(self, logicalIndex):  
-    #     self.proxy.sort(logicalIndex,-1)
+#------------------------------------------------------------------------------
     @pyqtSlot(int)
     def on_comboBox_currentIndexChanged(self, index):
         self.proxy.setFilterKeyColumn(index)
-    
+#------------------------------------------------------------------------------    
     def init(self):
-        
+        if viplatform.visiology.hasError: return
         self.view.reset()
 
         translate={'UserName':'Логин', 'useLdap':'LDAP', 'GivenName':'Имя',
@@ -185,35 +166,21 @@ class ViUserTab(QWidget):
                         else:
                             d.append(u[key])
                 data.append(d)
-        # print(data)
-        # headers = [translate[key] for key in viplatform.visiology.userList[0]]
-        # print(headers)
         self.model = TableModel(data,headers)
         
-        # self.model.setHorizontalHeaderLabels([viplatform.visiology.userList[0][key] for key in viplatform.visiology.userList[0]])
-        # self.model = QStandardItemModel(self)
-        # for rowName in range(3*5):
-        #     self.model.invisibleRootItem().appendRow(
-        #         [   QStandardItem("row {0} col {1}".format(rowName, column))    
-        #             for column in range(3)
-        #             ]
-        #         )
+
         
         self.proxy = QSortFilterProxyModel(self)
         self.proxy.setSourceModel(self.model)
         self.view.setModel(self.proxy)
         self.comboBox.addItems(headers)
-        # print(headers)
+
         self.lineEdit.textChanged.connect(self.on_lineEdit_textChanged)
         self.comboBox.currentIndexChanged.connect(self.on_comboBox_currentIndexChanged)
         
         self.horizontalHeader = self.view.horizontalHeader()
         self.horizontalHeader.setSectionsClickable(True)
-        # self.horizontalHeader.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        # self.horizontalHeader.setSectionResizeMode(6, QHeaderView.ResizeToContents) #Stretch)
-        # self.horizontalHeader.setSectionResizeMode(7, QHeaderView.ResizeToContents)
-        # self.horizontalHeader.setSectionResizeMode(8, QHeaderView.ResizeToContents)
-        # self.horizontalHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
+
         self.horizontalHeader.setStyleSheet("QHeaderView::section \
                                         {\
                                              background-color: #abe7ab; \
@@ -230,19 +197,9 @@ class ViUserTab(QWidget):
             # if value in ['LDAP','Лицензируется']:
                 self.horizontalHeader.setSectionResizeMode(index, QHeaderView.ResizeToContents)
         self.horizontalHeader.setSectionResizeMode(6, QHeaderView.Stretch)
-        # self.horizontalHeader.setSectionResizeMode(0, QHeaderView.Stretch)
-        # self.horizontalHeader.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        # self.horizontalHeade.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
-        # self.horizontalHeader.sectionClicked.connect(self.on_view_horizontalHeader_sectionClicked)
-        # displayHeaders=['UserName', 'useLdap', 'GivenName', 'FamilyName', 'MiddleName', 'Email', 'Roles', 'IsActive', 'LockoutEndDate', 'AccessFailedCount', 'IsBlocked', 'LastLogin', 'Created']
-        # for i, h in enumerate(headers):
-        #     if h not in displayHeaders:
-        #         self.view.hideRow(i)
-        #         print (h)
-        # self.view.resizeRowsToContents()
+        
         self.view.resizeColumnsToContents()
-        # self.view.update()
-        # self.view.repaint()
+
 #------------------- save------------------------
     def clickSave(self):
         options = QFileDialog.Options()
@@ -259,8 +216,6 @@ class ViUserTab(QWidget):
         if fileName:
             if not viplatform.visiology.loadExcel(fileName, "Sheet1"):
                 viutils.throwError(viplatform.visiology.errorText)
-            # else:
-            #     viutils.throwInfo("Загружено")
         
         self.refresh()
         self.total.setText(str(self.view.model().rowCount())+constants.VI_USER_OF_LABEL+str(len(viplatform.visiology.userList)))
@@ -287,8 +242,6 @@ class ViUserTab(QWidget):
                 error_val+=val+";"
                 f=False
         if not f:
-            # viutils.throwInfo("Успешно")
-        # else:
             viutils.throwError(error_val +" "+ viplatform.visiology.errorText)
         self.refresh()
         self.total.setText(str(self.view.model().rowCount())+constants.VI_USER_OF_LABEL+str(len(viplatform.visiology.userList)))
@@ -304,8 +257,6 @@ class ViUserTab(QWidget):
                 f=False
         
         if not f:
-        #     viutils.throwInfo("Успешно")
-        # else:
             viutils.throwError(error_val +" "+ viplatform.visiology.errorText)
             
         self.refresh()
@@ -328,11 +279,3 @@ class ViUserTab(QWidget):
         self.thread.finished.connect(
             lambda: self.init()
         )
-        # self.view.resizeColumnsToContents()
-#---------------------------------------
-    # def resizeRowsToContents(self):
-        
-    #     # self.verticalHeader.setSectionResizeMode( QHeaderView.Stretch)
-    #     for row in range(self.view.model().rowCount()):
-    #             hint = self.view.sizeHintForRow(row)
-    #             self.verticalHeader.resizeSection(row, hint)
