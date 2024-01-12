@@ -10,7 +10,6 @@ import constants
 import viplatform
 import viutils
 from pandas import DataFrame
-# from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QWidget,QTableView, QLabel, QGridLayout, QLineEdit, QPushButton
 from PyQt5.QtWidgets import QHeaderView
 from PyQt5.QtWidgets import QComboBox, QFileDialog, QSpinBox
@@ -20,13 +19,13 @@ from PyQt5.QtGui import QColor, QBrush
 
 from re import search
 from json import loads 
-
+#--------------------------------- class -------------------------------------
 class LokiTableModel(QAbstractTableModel):
     def __init__(self, data, headers):
         super().__init__()
         self._data = data
         self.hheaders = headers
-    #---------- check data ----------
+#-------------------------- check data ---------------------------------------
     def data(self, index, role= Qt.DisplayRole):
         if not index.isValid():
             return QVariant()
@@ -42,28 +41,29 @@ class LokiTableModel(QAbstractTableModel):
         if role == Qt.TextAlignmentRole:
             return Qt.AlignCenter
            
-    #---------- model row count -------------------    
+#---------------------- model row count --------------------------------------    
     def rowCount(self, index):
         return len(self._data)
+#-----------------------------------------------------------------------------
     def sort(self, Ncol, order):
         self.layoutAboutToBeChanged.emit()
         self._data = self._data.sort_values(self.headers[Ncol],
                                           ascending=order == Qt.AscendingOrder)
         self.layoutChanged.emit()
-
+#-----------------------------------------------------------------------------
     def columnCount(self, index):
         return len(self.hheaders)
     
-    
+#-----------------------------------------------------------------------------    
     def headerData(self, section, orientation, role):           
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal:
                 return self.hheaders[section]
         return QVariant()
-    
+#-----------------------------------------------------------------------------    
     def item(self, row, column):
         return QVariant()
-
+#-------------------------class ----------------------------------------------
 class ViLokiTab(QWidget):
     def __init__(self, parent): 
         super(QWidget, self).__init__(parent)
@@ -118,6 +118,7 @@ class ViLokiTab(QWidget):
         
 
         self.verticalHeader = self.view.verticalHeader()
+#-----------------------------------------------------------------------------
     @pyqtSlot(str)
     def on_lineEdit_textChanged(self, text):
         search = QRegExp(    text,
@@ -126,10 +127,11 @@ class ViLokiTab(QWidget):
                                     )
         self.proxy.setFilterRegExp(search)
         self.total.setText(str(self.view.model().rowCount()))
-
+#-----------------------------------------------------------------------------
     @pyqtSlot(int)
     def on_comboBox_currentIndexChanged(self, index):
         self.proxy.setFilterKeyColumn(index)
+#-----------------------------------------------------------------------------
     def init(self):
         if self.lokiKey.text()=='':
             self.lokiKey.setText(viplatform.visiology.lokiApiKey)
@@ -192,16 +194,8 @@ class ViLokiTab(QWidget):
 #-------------------------- save excel -------------------------
     def saveLokiExcel(self, excel_filename, sheet_name):
         df = DataFrame(self.data)
-<<<<<<< Updated upstream
         df.to_excel(excel_filename, sheet_name=sheet_name, index=False, engine='openpyxl')
-#------------------- load from loki
-=======
-        try:
-            df.to_excel(excel_filename, sheet_name=sheet_name, index=False, engine='openpyxl')
-        except Exception as e:
-            viutils.throwError(str(e))
 #------------------- load from loki -----------------------------------------
->>>>>>> Stashed changes
     def loadLoki(self):
         self.data=[]
         if self.lokiKey.text()=='':

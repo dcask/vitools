@@ -5,10 +5,7 @@ Created on Fri Dec  1 09:07:42 2023
 @author: dcask
 """
 import requests
-<<<<<<< Updated upstream
-=======
-from viutils import loadIniFile, throwError
->>>>>>> Stashed changes
+from viutils import loadIniFile,throwError
 from urllib.parse import urlencode
 # import constants
 from time import time
@@ -19,33 +16,36 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 global errorsCounter
 errorsCounter=0
-
+#-----------------------------------------------------------------------------
 def init(username,password, baseUrl) -> bool:
     global visiology
     visiology=ViPlatform()
     return visiology.init(username,password, baseUrl)
     
-    
+#------------------------------ class ----------------------------------------    
 class ViPlatform():
-    def getError(self)-> bool:
+#--------------------------------------------------------------------    
+    def getError(self)-> str:
         if self.hasError:
             self.hasError=False
             return self.errorText
-        return None
+        return ''
 #-------------------- startup init ----------------------------
     def __init__(self):
         self.baseURL=''
         self. password=''
         self.lokiApiKey=''
         self.user=''
-        self.timeout_value=10
+        self.timeout_value=20
         self.clearData()
+        self.windowCentralWidget=None
 #------------clear data-----------------------------
     def clearData(self):  
         self.since=24
         self.userToken=''
         self.db_roles=[]
         self.apiVersion=''
+        self.githubkey=''
         self.errorText=''
         self.headers={}
         self.userList=[]
@@ -59,13 +59,12 @@ class ViPlatform():
         self.password=password
         self.user=username
         self.baseURL=baseUrl
-        with open('vitools.json','r') as f:
-            try:
-                urldata=load(f)
-            except :
-                urldata={}
+        urldata=loadIniFile()
         if self.baseURL in urldata:
-            self.lokiApiKey=urldata[self.baseURL]['LOKI']
+            if 'LOKI' in urldata[self.baseURL]:
+                self.lokiApiKey=urldata[self.baseURL]['LOKI']
+            if 'githubkey' in urldata[self.baseURL]:
+                self.githubkey=urldata[self.baseURL]['githubkey']
         return self.getToken()
     def show(self) -> None:
         print(self.user)
@@ -79,14 +78,11 @@ class ViPlatform():
         }
         headers = {
             "Content-type": "application/x-www-form-urlencoded",
-            # "Content-type": "application/json",
             "Authorization": "Basic cHVibGljX3JvX2NsaWVudDpAOVkjbmckXXU+SF4zajY="
         }
         
         
         ok_ver,response = self.sendRequest('GET','/viqube/version', headers)
-        # self.userToken=''
-        # self.apiVersion=''
         if ok_ver:
             try:
                 self.apiVersion=response.json()['apiPartial']
@@ -99,7 +95,6 @@ class ViPlatform():
             except:
                 pass
             self.headers = {
-                # "Content-Type": "application/json",
                 "Content-type": "application/json",
                 "X-API-VERSION": self.apiVersion,
                 "Authorization": "Bearer "+self.userToken
@@ -155,26 +150,16 @@ class ViPlatform():
         return databases
 #------------------------- get license -------------------------
     def getLicense(self):
-        # try:
-        #     response = requests.get(self.baseURL+"/admin/license/limits", headers=self.headers, verify=constants.VI_SERTIFICATE_VERIFY)
-        #     if response.status_code!=200:
-        #         raise Exception(response.)
-        #     else:
-        #         self.license=response.json()
-        # except Exception as e:
-        #     self.errorText=str(e)
-        #     print(self.errorText)
-        #     self.hasError=True
+        self.license={'adminsNumber':0, 'editorsNumber':0, 'dcUsersNumber':0, 'otherUsersNumber':0 }
+
         ok, response = self.sendRequest('GET',"/admin/license/limits", self.headers)
         if ok:
             try:
                 self.license=response.json()
             except:
-                pass
-            
+                pass            
 #------------------------- get users -------------------------
     def getUsers(self):
-        # payload={"draw=5&columns%5B0%5D%5Bdata%5D=&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=FamilyName&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=true&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=GivenName&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=true&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=MiddleName&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=true&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=UserName&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=true&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=Email&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=true&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B8%5D%5Bdata%5D=&columns%5B8%5D%5Bname%5D=&columns%5B8%5D%5Bsearchable%5D=true&columns%5B8%5D%5Borderable%5D=false&columns%5B8%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B8%5D%5Bsearch%5D%5Bregex%5D=false&order%5B0%5D%5Bcolumn%5D=2&order%5B0%5D%5Bdir%5D=asc&start=0&length=10000&search%5Bvalue%5D=&search%5Bregex%5D=false&selectedRole=%D0%92%D1%81%D0%B5+%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D0%B8%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%BD%D1%8B%D0%B5+%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D0%B8"
         payload={
           "columns[0][data]": "",
           "columns[0][name]": "",
@@ -264,12 +249,9 @@ class ViPlatform():
         
         self.usedLicenses["Остальные пользователи"]=others
         self.usedLicenses["Всего"]=total
-        # print(self.usedLicenses)
 #--------------------создать пользователя и дать ему роль----------------------        
     def createUser(self, userName, userPassword, email, givenName, middleName, 
                    familyName, roles):
-        
-        # .encode('utf-8').decode('unicode_escape')
         
         payload = {
             "UserName": userName,
@@ -280,7 +262,6 @@ class ViPlatform():
         }
         ok, response = self.sendRequest("POST", '/admin/api/canUserBeCreated', headers, payload)
         if ok:
-            # print(roles)
             headers["Content-type"]="application/json"
             payload = {
                         "Email":           email,
@@ -311,49 +292,17 @@ class ViPlatform():
         }
         headers = {
             "content-type": "application/x-www-form-urlencoded",
-            # "Content-Type": "application/json",
-            # "X-API-VERSION": self.apiVersion,
             "Authorization": self.userToken
         }
-        # print(payload,headers)
         ok, response = self.sendRequest("DELETE", '/admin/api/user',  headers, payload)
-        # print(response.text)
         return ok
     
 #-------------------------- load excel -------------------------
     def loadExcel(self, excel_filename, sheet_name):
         sheet_name='Sheet1'
         flag = True
-        errorlog=''
-<<<<<<< Updated upstream
-        # try:
-        edata = read_excel(excel_filename, na_filter=False, sheet_name=sheet_name, header=0,
-                   converters={'UserName':str,'Password':str,'UserName':str,'Email':str,'GivenName':str,'FamilyName':str,'MiddleName':str, 'Roles':str})
-        edata.replace('nan', '')
-        logins = edata['UserName'].tolist()
-        passwords =  edata['Password'].tolist()
-        emails =  edata['Email'].tolist()
-        givennames= edata['GivenName'].tolist()
-        familynames= edata['FamilyName'].tolist()
-        middlenames= edata['MiddleName'].tolist()
-        roles=edata['Roles'].tolist()
-
-        for alogin,apass,aemail,agivenname,afamilyname,amiddlename,arole in zip(logins,passwords,emails,givennames, familynames, middlenames, roles):
-            rolesList=arole.split(',')
-            if alogin!='' and apass!='' and afamilyname!='':
-                # print(alogin, apass, aemail, agivenname,amiddlename,afamilyname, rolesList)
-                if 'Все авторизованные пользователи' not in rolesList:
-                    rolesList.append('Все авторизованные пользователи')
-                if  not self.createUser(alogin, apass, aemail, agivenname,amiddlename,afamilyname, rolesList):
-                    errorlog+=alogin+" не создан по причине "+self.errorText+"\n"
-                    flag = False
-        # except Exception as e:
-        #     self.errorText=str(e)
-        #     print(self.errorText)
-        #     self.hasError=True
-        if len(errorlog): self.errorText=errorlog
-=======
         try:
+            errorlog=''
             edata = read_excel(excel_filename, na_filter=False, sheet_name=sheet_name, header=0,
                        converters={'UserName':str,'Password':str,'UserName':str,'Email':str,'GivenName':str,'FamilyName':str,'MiddleName':str, 'Roles':str})
             edata.replace('nan', '')
@@ -364,8 +313,7 @@ class ViPlatform():
             familynames= edata['FamilyName'].tolist()
             middlenames= edata['MiddleName'].tolist()
             roles=edata['Roles'].tolist()
-        
-
+    
             for alogin,apass,aemail,agivenname,afamilyname,amiddlename,arole in zip(logins,passwords,emails,givennames, familynames, middlenames, roles):
                 rolesList=arole.split(',')
                 if alogin!='' and apass!='' and afamilyname!='':
@@ -376,18 +324,17 @@ class ViPlatform():
                         flag = False
             if len(errorlog): self.errorText=errorlog
         except Exception as e:
-            throwError(str(e))  
             flag=False
->>>>>>> Stashed changes
+            throwError(str(e))
         return flag
 #-------------------------- save excel -------------------------
     def saveExcel(self, excel_filename, sheet_name):
-        df = DataFrame.from_dict(self.userList)
-        df = df.drop(df[df['IsBuiltIn']].index)
-        # df=df.drop(columns=['IsBuiltIn','IsInfrastructure','useLdap','IsActive', 'LockoutEndDate', 'AccessFailedCount', 'IsBlocked', 'LastLogin', 'Created'])
-        df=df.drop(columns=['IsBuiltIn','IsInfrastructure','useLdap','IsActive', 'LockoutEndDate', 'AccessFailedCount', 'IsBlocked'])
-        df.insert(1,'Password','')
         try:
+            df = DataFrame.from_dict(self.userList)
+            df = df.drop(df[df['IsBuiltIn']].index)
+            df=df.drop(columns=['IsBuiltIn','IsInfrastructure','useLdap','IsActive', 'LockoutEndDate', 'AccessFailedCount', 'IsBlocked'])
+            df.insert(1,'Password','')
+            
             df.to_excel(excel_filename, sheet_name=sheet_name, index=False, engine='openpyxl')
         except Exception as e:
             throwError(str(e))
@@ -398,8 +345,6 @@ class ViPlatform():
             "UserName": userName,
         }
         headers = {
-            # "Content-Type": "application/json",
-            # "X-API-VERSION": self.apiVersion,
             "Content-type": "application/x-www-form-urlencoded",
             "Authorization": self.userToken
         }
@@ -411,18 +356,36 @@ class ViPlatform():
         self.hasError=False
         response=None
         try:
-
             response = requests.request(req_type, self.baseURL+rq_url,
                                         data=req_payload, headers=rq_headers, verify=False,
                                         timeout=self.timeout_value)
-            # response.encoding = 'utf-8'
+            if response.status_code!=200:
+                raise Exception(str(response.status_code)+':'+response.text)
+        except Exception as e:
+            print(str(e))
+            self.errorText=rq_url+':'+str(e)
+            self.print_error(req_type, self.baseURL+rq_url, rq_headers, req_payload, self.errorText)
+            self.hasError=True
+        return not self.hasError,response
+#---------------------------------------------------------------------------        
+    def sendFile(self, rq_url,  req_data):
+        self.hasError=False
+        response=None
+        try:
+            headers = {
+                "Content-Type": "application/octet-stream",
+                "Authorization": "Bearer "+self.userToken,
+                }
+
+            response = requests.request('POST', self.baseURL+rq_url,
+                                        data=req_data, headers=headers, verify=False,
+                                        timeout=self.timeout_value)
             if response.status_code!=200:
                 raise Exception(str(response.status_code)+':'+response.text)
         except Exception as e:
             self.errorText=rq_url+':'+str(e)
-            self.print_error(req_type, self.baseURL+rq_url, rq_headers, req_payload, self.errorText)
+            print('File', self.baseURL+rq_url,headers, self.errorText)
             self.hasError=True
-            # raise e
         return not self.hasError,response
 #---------------------------------------------------------------------------        
     def sendJSON(self, req_type, rq_url, rq_headers, req_payload={}):
@@ -433,15 +396,14 @@ class ViPlatform():
             response = requests.request(req_type, self.baseURL+rq_url,
                                         json=req_payload, headers=rq_headers, verify=False,
                                         timeout=self.timeout_value)
-            # response.encoding = 'utf-8'
             if response.status_code!=200:
                 raise Exception(str(response.status_code)+':'+response.text)
         except Exception as e:
             self.errorText=rq_url+':'+str(e)
             self.print_error(req_type, self.baseURL+rq_url, rq_headers, req_payload, self.errorText)
             self.hasError=True
-            # raise e
         return not self.hasError,response
+#----------------------------------------------------------------------------
     def getDashboards(self):
         headers = {
             "Content-Type": "application/json",
@@ -486,16 +448,9 @@ class ViPlatform():
                 self.dash_views=response.json()
             except:
                 pass
-            # print(self.dash_views,self.dashboards)
-            #save to config file
-            with open('vitools.json','r') as f:
-                try:
-                    urldata=load(f)
-                except :
-                    urldata={}
-            urldata[self.baseURL]['LOKI']=self.lokiApiKey
-            with open('vitools.json', 'w', encoding='utf-8') as f:
-                dump(urldata, f, ensure_ascii=False, indent=4)       
+    
+            self.saveIniFile({'LOKI':self.lokiApiKey})
+#-----------------------------------------------------------------------------
     def print_error(self, req_type, rq_url, rq_headers, req_payload, errorText):
         global errorsCounter
         print(f'-----request error {errorsCounter} ----')
@@ -507,3 +462,14 @@ class ViPlatform():
         print(dumps(req_payload, indent=2).encode('utf-8').decode('unicode_escape'))
         
         errorsCounter=errorsCounter+1
+#------------------------------------------------------------------------------
+    def saveIniFile(self, keyDict):
+        with open('vitools.json','r') as f:
+            try:
+                urldata=load(f)
+            except :
+                urldata={}
+        for i in keyDict:
+            urldata[self.baseURL][i]=keyDict[i]
+        with open('vitools.json', 'w', encoding='utf-8') as f:
+            dump(urldata, f, ensure_ascii=False, indent=4) 
