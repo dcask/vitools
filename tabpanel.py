@@ -10,6 +10,7 @@ from vilicense import ViLicenseTab
 from userTab import ViUserTab
 from apitool import ViApiTab
 from lokitab import ViLokiTab
+from entrancetab import ViIdentityTab
 from dashexport import ViDashboardsExport
 from PyQt5.QtWidgets import QTabWidget
 #------------------------------------------------------------------------------
@@ -26,6 +27,7 @@ class ViTabPanel(QTabWidget):
         self.tab1 = ViApiTab(self) 
         self.tab5 = ViLokiTab(self) 
         self.tab6 = ViDashboardsExport(self)
+        self.tab7 = ViIdentityTab(self)
         self.resize(600, 400) 
 
         self.addTab(self.tab1, constants.VI_TABPANEL_TAB1_NAME) 
@@ -34,6 +36,7 @@ class ViTabPanel(QTabWidget):
         self.addTab(self.tab4, constants.VI_TABPANEL_TAB4_NAME)
         self.addTab(self.tab5, constants.VI_TABPANEL_TAB5_NAME)
         self.addTab(self.tab6, constants.VI_TABPANEL_TAB6_NAME)
+        self.addTab(self.tab7, constants.VI_TABPANEL_TAB7_NAME)
 #----------------------------------------------------------------------------        
     def init(self):
         self.tab1.init()
@@ -42,6 +45,7 @@ class ViTabPanel(QTabWidget):
         self.tab4.init()
         self.tab5.init()
         self.tab6.init()
+        self.tab7.init()
 #----------------------------------------------------------------------------        
     def closeEvent(self, event):
         self.tab1.close()
@@ -50,5 +54,6 @@ class ViTabPanel(QTabWidget):
         self.tab4.close()
         self.tab5.close()
         self.tab6.close()
+        self.tab7.close()
         event.accept()
    

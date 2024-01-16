@@ -17,7 +17,7 @@ from PyQt5.QtCore import Qt, QSortFilterProxyModel, QAbstractTableModel, QThread
 from PyQt5.QtCore import QVariant, pyqtSlot, QRegExp#, QModelIndex
 from PyQt5.QtGui import QColor, QBrush
 
-from re import search
+from re import search, sub
 from json import loads 
 #--------------------------------- class -------------------------------------
 class LokiTableModel(QAbstractTableModel):
@@ -64,7 +64,7 @@ class LokiTableModel(QAbstractTableModel):
     def item(self, row, column):
         return QVariant()
 #-------------------------class ----------------------------------------------
-class ViLokiTab(QWidget):
+class ViIdentityTab(QWidget):
     def __init__(self, parent): 
         super(QWidget, self).__init__(parent)
         self.lokiKey       = QLineEdit()
@@ -136,9 +136,9 @@ class ViLokiTab(QWidget):
         if self.lokiKey.text()=='':
             self.lokiKey.setText(viplatform.visiology.lokiApiKey)
         self.view.reset()
-        self.loadLoki()
+        self.loadIdentity()
         
-        headers=['Время','Дашбоард','GUID','UserName']
+        headers=['Время','IP','User']
 
         self.model = LokiTableModel(self.data,headers)
 
@@ -170,13 +170,13 @@ class ViLokiTab(QWidget):
                                                   " Text Files (*.xlsx)", options=options)
         if fileName:
             if fileName[:-5] !='.xlsx': fileName+='.xlsx'
-            self.saveLokiExcel(fileName, "Sheet1")
+            self.saveIdentityExcel(fileName, "Sheet1")
 #--------------------refresh---------------------------
     def refresh(self):
         viplatform.visiology.lokiApiKey=self.lokiKey.text()
         self.loader= viutils.LoadingGif(self)
         self.thread = QThread()
-        self.worker = viutils.WorkerLoki('dash')
+        self.worker = viutils.WorkerLoki('ident')
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
@@ -192,31 +192,32 @@ class ViLokiTab(QWidget):
         )
 
 #-------------------------- save excel -------------------------
-    def saveLokiExcel(self, excel_filename, sheet_name):
+    def saveIdentityExcel(self, excel_filename, sheet_name):
         df = DataFrame(self.data)
         try:
             df.to_excel(excel_filename, sheet_name=sheet_name, index=False, engine='openpyxl')
         except Exception as e:
             viutils.throwError(str(e))
 #------------------- load from loki -----------------------------------------
-    def loadLoki(self):
+    def loadIdentity(self):
         self.data=[]
         if self.lokiKey.text()=='':
             return
 
-        if len(viplatform.visiology.dash_views):
+        if len(viplatform.visiology.entrance):
             regtemplate=r'{.*}'
-            for r in viplatform.visiology.dash_views["data"]["result"]:
-                if len(viplatform.visiology.dash_views["data"]["result"])>0:
+            for r in viplatform.visiology.entrance["data"]["result"]:
+                if len(viplatform.visiology.entrance["data"]["result"])>0:
                     for value in r["values"]:
                         v=loads(value[1])
                         d = search(regtemplate,v['log'])
                         if d:
                             p=d.group()[1:-1]
+                            p=sub(r"(\[.*),\s(.*\])",r"\1;\2",p)
                             result = dict((a.strip(), b.strip()[1:-1])  
                                       for a, b in (element.split(': ')  
                                                   for element in p.split(', ')))
                             self.data.append([v['time'].replace('T',' ').replace('Z',''),
-                                              viplatform.visiology.dashboards[result['DashboardGuid']],
-                                              result['DashboardGuid'],result['UserLogin']])
+                                              result['Ip'],
+                                              result['Username']])
                             

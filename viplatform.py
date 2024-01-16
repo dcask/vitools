@@ -52,6 +52,7 @@ class ViPlatform():
         self.license={}
         self.dash_views={}
         self.dashboards = {}
+        self.entrance = {}
         self.usedLicenses={}
         self.hasError=False
 #-------------------- init ----------------------------
@@ -446,6 +447,39 @@ class ViPlatform():
         if not self.hasError:
             try:
                 self.dash_views=response.json()
+            except:
+                pass
+    
+            self.saveIniFile({'LOKI':self.lokiApiKey})
+#------------------------------------------------------------------------------
+    def getLokiEntranceRequests(self):
+        if self.lokiApiKey=='':
+            return
+        step=int(2.5*self.since+1)
+        end = int(time())
+        start = end-self.since*3600
+        querystring = {
+            "direction":"BACKWARD",
+            "limit":"1000",
+            "query":"{component=\"identity-server\"} |=\"Успешный вход в платформу\"",
+            "start": start*1000000000,
+            "end": end*1000000000,
+            "step":step
+        }
+        
+        lokiheaders = {
+            "Content-Type": "text/html",
+            "Authorization": "Bearer "+self.lokiApiKey
+            }
+        self.entrance={}
+        
+        self.hasError=False
+        params = urlencode(querystring)
+        ok,response = self.sendRequest('GET', '/grafana/api/datasources/proxy/1/loki/api/v1/query_range?'+params, lokiheaders)
+
+        if not self.hasError:
+            try:
+                self.entrance=response.json()
             except:
                 pass
     

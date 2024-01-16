@@ -21,7 +21,7 @@ VI_SERTIFICATE_VERIFY=False
 VI_WINDOW_WIDTH=400
 VI_WINDOW_HEIGHT=320
 VI_WINDOW_ICON_PATH=os.path.join(base_path, 'images\\logo.png')
-VI_WINDOW_NAME="viTools 1.03"
+VI_WINDOW_NAME="viTools 1.04"
 
 VI_TABPANEL_TAB1_NAME="API"
 VI_TABPANEL_TAB2_NAME="Пользователи"
@@ -29,6 +29,7 @@ VI_TABPANEL_TAB3_NAME="Описание"
 VI_TABPANEL_TAB4_NAME="Доступ к базам"
 VI_TABPANEL_TAB5_NAME="Просмотры дашбордов"
 VI_TABPANEL_TAB6_NAME="GitHub"
+VI_TABPANEL_TAB7_NAME="Вход пользователей"
 VI_TABPANEL_LOADER=os.path.join(base_path, "images\\loader.gif")
 VI_TABPANEL_REFRESH="Перезагрузить"
 VI_TABPANEL_ERROR_LINK="Ошибка связывания"

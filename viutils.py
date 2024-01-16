@@ -237,12 +237,18 @@ class WorkerLicence(QObject):
 class WorkerLoki(QObject):
     finished = pyqtSignal()
     catcherror = pyqtSignal(str)
+    def __init__(self, mode=''):
+        super(QObject, self).__init__()
+        self.mode=mode
 #------------------------------------------------------------------------------
     def run(self):
 
         if viplatform.visiology.checkPlatform():
             viplatform.visiology.getDashboards()
-            viplatform.visiology.getLokiDashboardRequests()
+            if self.mode!='ident':
+                viplatform.visiology.getLokiDashboardRequests()
+            if self.mode!='dash':
+                viplatform.visiology.getLokiEntranceRequests()
         if viplatform.visiology.hasError:
             self.catcherror.emit(viplatform.visiology.errorText) 
         self.finished.emit()

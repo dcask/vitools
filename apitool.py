@@ -219,4 +219,7 @@ class ViApiTab(QWidget):
             if isinstance(json_out, dict):
                 df = DataFrame.from_dict(loads(self.outputEdit.toPlainText()),orient="index")
             if not df.empty:
-                df.to_excel(fileName, sheet_name="Sheet1", index=False, engine='openpyxl')
+                try:
+                    df.to_excel(fileName, sheet_name="Sheet1", index=False, engine='openpyxl')
+                except Exception as e:
+                    throwError(str(e))
