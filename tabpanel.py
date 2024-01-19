@@ -12,6 +12,8 @@ from apitool import ViApiTab
 from lokitab import ViLokiTab
 from entrancetab import ViIdentityTab
 from dashexport import ViDashboardsExport
+from vishell import ViShellTab
+from monitor import ViMonitorTab
 from PyQt5.QtWidgets import QTabWidget
 #------------------------------------------------------------------------------
 class ViTabPanel(QTabWidget): 
@@ -28,6 +30,8 @@ class ViTabPanel(QTabWidget):
         self.tab5 = ViLokiTab(self) 
         self.tab6 = ViDashboardsExport(self)
         self.tab7 = ViIdentityTab(self)
+        self.tab8 = ViShellTab(self)
+        self.tab9 = ViMonitorTab(self)
         self.resize(600, 400) 
 
         self.addTab(self.tab1, constants.VI_TABPANEL_TAB1_NAME) 
@@ -37,6 +41,8 @@ class ViTabPanel(QTabWidget):
         self.addTab(self.tab5, constants.VI_TABPANEL_TAB5_NAME)
         self.addTab(self.tab6, constants.VI_TABPANEL_TAB6_NAME)
         self.addTab(self.tab7, constants.VI_TABPANEL_TAB7_NAME)
+        self.addTab(self.tab8, constants.VI_TABPANEL_TAB8_NAME)
+        self.addTab(self.tab9, constants.VI_TABPANEL_TAB9_NAME)
 #----------------------------------------------------------------------------        
     def init(self):
         self.tab1.init()
@@ -46,6 +52,8 @@ class ViTabPanel(QTabWidget):
         self.tab5.init()
         self.tab6.init()
         self.tab7.init()
+        self.tab8.init()
+        self.tab9.init()
 #----------------------------------------------------------------------------        
     def closeEvent(self, event):
         self.tab1.close()
@@ -55,5 +63,7 @@ class ViTabPanel(QTabWidget):
         self.tab5.close()
         self.tab6.close()
         self.tab7.close()
+        self.tab8.close()
+        self.tab9.close()
         event.accept()
    

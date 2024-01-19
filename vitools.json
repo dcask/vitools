@@ -2,13 +2,13 @@
     "https://dcask.visiology.su": {
         "githubkey": "",
         "user": "admin",
-        "current": false,
+        "current": true,
         "LOKI": "eyJrIjoiNmJIelFJcTZYVGRuTjFDZjVjWmNOeWpDSnplM3FqbXIiLCJuIjoiYXBpbG9raSIsImlkIjoxfQ=="
     },
     "https://example.visiology.su": {
         "githubkey": "",
         "user": "dcask",
-        "current": true,
+        "current": false,
         "LOKI": "eyJrIjoiVjZOakhMV0JqYjRrNGxUVDFlWVRwUkRqVVl0OFBIamUiLCJuIjoiZGNhc2tsb2tpIiwiaWQiOjF9"
     }
 }

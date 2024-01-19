@@ -68,7 +68,6 @@ class ViIdentityTab(QWidget):
     def __init__(self, parent): 
         super(QWidget, self).__init__(parent)
         self.lokiKey       = QLineEdit()
-        self.lineEdit       = QLineEdit()
         self.since      = QSpinBox()
         self.since.setValue(24)
         
@@ -121,11 +120,11 @@ class ViIdentityTab(QWidget):
 #-----------------------------------------------------------------------------
     @pyqtSlot(str)
     def on_lineEdit_textChanged(self, text):
-        search = QRegExp(    text,
+        search_str = QRegExp(    text,
                                     Qt.CaseInsensitive,
                                     QRegExp.RegExp
                                     )
-        self.proxy.setFilterRegExp(search)
+        self.proxy.setFilterRegExp(search_str)
         self.total.setText(str(self.view.model().rowCount()))
 #-----------------------------------------------------------------------------
     @pyqtSlot(int)
@@ -137,7 +136,7 @@ class ViIdentityTab(QWidget):
             self.lokiKey.setText(viplatform.visiology.lokiApiKey)
         self.view.reset()
         self.loadIdentity()
-        
+        self.comboBox.clear()
         headers=['Время','IP','User']
 
         self.model = LokiTableModel(self.data,headers)

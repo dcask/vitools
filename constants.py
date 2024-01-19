@@ -21,7 +21,7 @@ VI_SERTIFICATE_VERIFY=False
 VI_WINDOW_WIDTH=400
 VI_WINDOW_HEIGHT=320
 VI_WINDOW_ICON_PATH=os.path.join(base_path, 'images\\logo.png')
-VI_WINDOW_NAME="viTools 1.04"
+VI_WINDOW_NAME="viTools 1.05"
 
 VI_TABPANEL_TAB1_NAME="API"
 VI_TABPANEL_TAB2_NAME="Пользователи"
@@ -30,6 +30,8 @@ VI_TABPANEL_TAB4_NAME="Доступ к базам"
 VI_TABPANEL_TAB5_NAME="Просмотры дашбордов"
 VI_TABPANEL_TAB6_NAME="GitHub"
 VI_TABPANEL_TAB7_NAME="Вход пользователей"
+VI_TABPANEL_TAB8_NAME="Контейнеры"
+VI_TABPANEL_TAB9_NAME="Монитор"
 VI_TABPANEL_LOADER=os.path.join(base_path, "images\\loader.gif")
 VI_TABPANEL_REFRESH="Перезагрузить"
 VI_TABPANEL_ERROR_LINK="Ошибка связывания"
@@ -58,6 +60,10 @@ VI_USER_SAVEAS_LABEL="Сохранить как"
 VI_USER_LOADAS_LABEL="Загрузить"
 VI_USER_TOTAL_LABEL="Показано "
 VI_USER_OF_LABEL=" из "
+
+VI_SHELL_MESSAGE_LABEL='Отправить сообщение:'
+VI_SHELL_SEND_BUTTON_LABEL='Отправить'
+VI_SHELL_REFRESH_BUTTON_LABEL='Обновить'
 
 VI_LOGIN_TITLE="Подключиться к платформе"
 VI_LOGIN_WINDOW_WIDTH=300

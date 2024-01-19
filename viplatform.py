@@ -49,6 +49,7 @@ class ViPlatform():
         self.errorText=''
         self.headers={}
         self.userList=[]
+        self.services = []
         self.license={}
         self.dash_views={}
         self.dashboards = {}
@@ -418,6 +419,61 @@ class ViPlatform():
                     self.dashboards[dashboard['_id']]=dashboard['Name']
             except:
                 pass
+#------------------------------------------------------------------------------
+    def getServices(self):
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": self.userToken
+        }
+        self.services = []
+        ok,response = self.sendRequest("GET",'/control/shell/services', headers)
+        if ok:
+            try:
+                for service in response.json():
+                    self.services.append({'name':service['Name'],'replicas':service['Replicas']})
+            except:
+                pass
+#------------------------------------------------------------------------------
+    def sendAdminMessage(self, message, target):
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": self.userToken
+        }
+        payload = {"message":message,"target":target}
+        ok,response = self.sendJSON("POST",'/control/shell/message', headers, payload)
+#------------------------------------------------------------------------------
+    def restartService(self, name):
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": self.userToken
+        }
+        payload = {}
+        ok,response = self.sendJSON("POST",f'/control/shell/restart/{name}', headers, payload)
+        if ok:
+            throwError("Done")
+#------------------------------------------------------------------------------
+    def getServiceLog(self, name):
+        value=""
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": self.userToken
+        }
+        payload = {'lines':30}
+        ok,response = self.sendJSON("POST",f'/control/shell/log/{name}', headers, payload)
+        if ok:
+            value = response.json()
+        return value
+#------------------------------------------------------------------------------
+    def getConnections(self):
+        value=""
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": self.userToken
+        }
+        ok,response = self.sendJSON("GET",'/control/shell/connections', headers)
+        if ok:
+            value = response.json()
+        return value
 #--------------------get loki data----------------------        
     def getLokiDashboardRequests(self):
         if self.lokiApiKey=='':
