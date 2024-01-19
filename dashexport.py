@@ -193,12 +193,14 @@ class ViDashboardsExport(QWidget):
 
 #-----------------------------thread ------------------------------------------
     def loadReposCombo(self):
-        
-        repos=self.worker.repos # here list
-        self.repoCombo.clear()
-        self.repoCombo.addItems([str(i).replace('Repository(full_name="','').replace('")','') for i in repos])
-        viplatform.visiology.saveIniFile({'githubkey':self.apiKey.text()})
-        self.preparePlatformDashboardTree()
+        try:
+            repos=self.worker.repos # here list
+            self.repoCombo.clear()
+            self.repoCombo.addItems([str(i).replace('Repository(full_name="','').replace('")','') for i in repos])
+            viplatform.visiology.saveIniFile({'githubkey':self.apiKey.text()})
+            self.preparePlatformDashboardTree()
+        except Exception as e:
+            viutils.throwError(str(e))
         self.loader.stopAnimation()
 #-----------------------------------------------------------------------------        
     def connectThread(self):
@@ -225,14 +227,17 @@ class ViDashboardsExport(QWidget):
         
 #------------------------------thread-----------------------------------------
     def loadRepoBranch(self):
-        branches = self.worker.branches #here list
-        self.branchCombo.clear()
-        self.branchCombo.addItems([str(i).replace('Branch(name="','').replace('")','') for i in branches])
-        if self.loader.started:
-            self.loader.stopAnimation()
-        self.loader= viutils.LoadingGif(self.groupWidget)
-        
-        self.commandLoadfiles.emit()
+        try:
+            branches = self.worker.branches #here list
+            self.branchCombo.clear()
+            self.branchCombo.addItems([str(i).replace('Branch(name="','').replace('")','') for i in branches])
+            if self.loader.started:
+                self.loader.stopAnimation()
+            self.loader= viutils.LoadingGif(self.groupWidget)
+            
+            self.commandLoadfiles.emit()
+        except Exception as e:
+            viutils.throwError(str(e))
         
 #----------------------------------------------------------------------------=
     def onRepoChanged(self):
@@ -267,45 +272,48 @@ class ViDashboardsExport(QWidget):
         self.commandDownloadFiles.emit(d, self.branchCombo.currentText())
 #--------------------------------------------------------------------------
     def onClickUpload(self):
-        if self.prefix.text()=='':
-            self.prefix.setStyleSheet("border: 1px solid red;") #changed
-            return
-        if self.loader.started:
-            self.loader.stopAnimation()
-        self.loader= viutils.LoadingGif(self.groupWidget)
-        payload={"dashboardsGuidList":[],
-                "dataSources":[],
-                "dimensions": [],
-                "imagesGuidList": [],
-                "measureGroups": [],
-                "tables": []
-                }
         try:
-            shutil.rmtree(constants.VI_EXPORT_PATH)
-        except OSError as e:
-            print("Error: %s - %s." % (e.filename, e.strerror))
-        dashList = self.get_checked(self.modelPlatform)
-        for d in dashList:
-            
-            payload["dashboardsGuidList"]=[d['data']]
-            
-            filename=constants.VI_EXPORT_PATH+'\\'+d['data']+'\\'+d['data']+'.zip'
-            os.makedirs(os.path.dirname(filename), exist_ok=True)
-            print(payload)
-            ok_ver,response = viplatform.visiology.sendJSON('POST','/migration/export',
-                                                            viplatform.visiology.headers, payload)     
-            data = response.content
-            with open(filename, 'wb') as s:
-                s.write(data)
-            with zipfile.ZipFile(filename, 'r') as zip_ref:
-                zip_ref.extractall(os.path.dirname(filename))
-            with open(os.path.dirname(filename)+'/name.txt', 'w',encoding="utf-8") as s:
-                s.write(d['name'])
-            os.remove(filename)
-        if len(dashList)>0:
-                        
-            self.commandUploadFiles.emit(self.prefix.text(),self.branchCombo.currentText(),
-                                         self.comment.text())
+            if self.prefix.text()=='':
+                self.prefix.setStyleSheet("border: 1px solid red;") #changed
+                return
+            if self.loader.started:
+                self.loader.stopAnimation()
+            self.loader= viutils.LoadingGif(self.groupWidget)
+            payload={"dashboardsGuidList":[],
+                    "dataSources":[],
+                    "dimensions": [],
+                    "imagesGuidList": [],
+                    "measureGroups": [],
+                    "tables": []
+                    }
+            try:
+                shutil.rmtree(constants.VI_EXPORT_PATH)
+            except OSError as e:
+                print("Error: %s - %s." % (e.filename, e.strerror))
+            dashList = self.get_checked(self.modelPlatform)
+            for d in dashList:
+                
+                payload["dashboardsGuidList"]=[d['data']]
+                
+                filename=constants.VI_EXPORT_PATH+'\\'+d['data']+'\\'+d['data']+'.zip'
+                os.makedirs(os.path.dirname(filename), exist_ok=True)
+                print(payload)
+                ok_ver,response = viplatform.visiology.sendJSON('POST','/migration/export',
+                                                                viplatform.visiology.headers, payload)     
+                data = response.content
+                with open(filename, 'wb') as s:
+                    s.write(data)
+                with zipfile.ZipFile(filename, 'r') as zip_ref:
+                    zip_ref.extractall(os.path.dirname(filename))
+                with open(os.path.dirname(filename)+'/name.txt', 'w',encoding="utf-8") as s:
+                    s.write(d['name'])
+                os.remove(filename)
+            if len(dashList)>0:
+                            
+                self.commandUploadFiles.emit(self.prefix.text(),self.branchCombo.currentText(),
+                                             self.comment.text())
+        except Exception as e:
+            viutils.throwError(str(e))
 
 #------------------------------------------------------------------------------        
     def uploadLocalFolder2Platform(self):

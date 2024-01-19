@@ -92,18 +92,20 @@ class WorkerGit(QObject):
     def getRepos(self):
         try:
             self.repos=self.git.get_user().get_repos()
+            self.gotRepos.emit()
         except Exception as e:
             throwError(str(e))
-        self.gotRepos.emit()
+        
 #------------------------------------------------------------------------------        
     @Slot(str)
     def getRepoBranch(self, s):
         try:
             self.repo = self.git.get_repo(s)
             self.branches = self.repo.get_branches()
+            self.gotRepoBranch.emit()
         except Exception as e:
             throwError(str(e))
-        self.gotRepoBranch.emit()
+        
 #------------------------------------------------------------------------------        
     @Slot()
     def getFiles(self):
