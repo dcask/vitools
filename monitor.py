@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QAbstractTableModel, QThread
 from PyQt5.QtCore import QVariant, pyqtSlot, QRegExp, pyqtSlot
 from PyQt5.QtGui import QColor, QBrush
+from datetime import datetime
 
 #--------------------------------- class -------------------------------------
 class MonitorTableModel(QAbstractTableModel):
@@ -131,7 +132,7 @@ class ViMonitorTab(QWidget):
         
         self.loadMonitor()
         self.comboBox.clear()
-        headers=['Id','IP','Пользователь', 'Имя дашборда', 'dashboard guid']
+        headers=['Id','IP','Пользователь', 'Имя дашборда', 'dashboard guid', 'Подключен']
 
         self.model = MonitorTableModel(self.data,headers)
 
@@ -193,11 +194,13 @@ class ViMonitorTab(QWidget):
         connections = viplatform.visiology.getConnections()
         self.data=[]
         for connection in connections:
+            ts=int(connection['client_id'])/1000
             self.data.append([connection['client_id'],
                               connection['ip'],
                               connection['user'],
                               viplatform.visiology.dashboards[connection['dashboard'] ],
-                              connection['dashboard']])
+                              connection['dashboard'],
+                              datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')])
             self.targetComboBox.addItems([connection['client_id'],])
         pass
                             
