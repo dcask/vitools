@@ -211,6 +211,21 @@ class WorkerUser(QObject):
         if viplatform.visiology.hasError:
             self.catcherror.emit(viplatform.visiology.errorText) 
         self.finished.emit()
+# -----------------------class-------------------------------------------------        
+class WorkerRestartServer(QObject):
+    finished = pyqtSignal()
+    catcherror = pyqtSignal(str)
+    def __init__(self, service=''):
+        super(QObject, self).__init__()
+        self.service=service
+#------------------------------------------------------------------------------    
+    def run(self):
+
+        if viplatform.visiology.checkPlatform() and self.service!='':
+            viplatform.visiology.restartService(self.service)
+        if viplatform.visiology.hasError:
+            self.catcherror.emit(viplatform.visiology.errorText) 
+        self.finished.emit()
 #---------------------class---------------------------------------------------
 class WorkerToken(QObject):
     finished = pyqtSignal()

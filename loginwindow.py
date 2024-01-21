@@ -56,6 +56,7 @@ class ViLogin(QDialog):
        
         #Button
         self.loginButton = QPushButton(constants.VI_LOGIN_BUTTON_LABEL, self)
+        self.loginButton.setStyleSheet('QPushButton {background-color: #f5b25c}')
         self.loginButton.clicked.connect(self.clickLoginMethod)
     
         self.groupLayout.addWidget(self.urlLabel, 0, 0, 1, 1)

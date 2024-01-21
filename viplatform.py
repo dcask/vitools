@@ -36,7 +36,7 @@ class ViPlatform():
         self. password=''
         self.lokiApiKey=''
         self.user=''
-        self.timeout_value=20
+        self.timeout_value=30
         self.clearData()
         self.windowCentralWidget=None
 #------------clear data-----------------------------

@@ -7,11 +7,11 @@ Created on Thu Jan 18 15:31:52 2024
 
 import constants
 import viplatform
-from viutils import throwError,throwInfo
+from viutils import WorkerRestartServer, LoadingGif, throwError
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QWidget,  QVBoxLayout, QHBoxLayout, QLabel, QGridLayout, QPushButton
 from PyQt5.QtWidgets import QLineEdit, QFrame, QScrollArea, QSpacerItem, QDialog, QDialogButtonBox
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, QThread
 
 
 #------------------------------------------------------------------------------
@@ -94,12 +94,30 @@ class ViShellTab(QWidget):
         # self.linkButton.setEnabled(False)
         # self.groupLayout.addWidget(self.linkButton, 5, 1, 1, 1)
 #------------------------------------------------------------------------------        
-    def clickSendMessage(self):  
-        viplatform.visiology.sendAdminMessage(self.message.text())
+    # def clickSendMessage(self):  
+    #     viplatform.visiology.sendAdminMessage(self.message.text())
 #------------------------------------------------------------------------------        
     def clickRestart(self):  
         sender = self.sender()
-        viplatform.visiology.restartService(sender.property('service'))
+
+        self.loader= LoadingGif(self)
+        self.thread = QThread()
+        self.worker = WorkerRestartServer(sender.property('service'))
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.catcherror.connect(throwError)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.start()
+        self.thread.finished.connect(
+            lambda: self.loader.stopAnimation()
+        )
+        self.thread.finished.connect(
+            lambda: self.init()
+        )
+        
+        # viplatform.visiology.restartService(sender.property('service'))
         # throwInfo(sender.property('service'))
 #------------------------------------------------------------------------------        
     def clickLog(self):  

@@ -10,10 +10,10 @@ import constants
 import viplatform
 import viutils
 from PyQt5.QtWidgets import QWidget,QTableView, QLabel, QGridLayout, QLineEdit, QPushButton
-from PyQt5.QtWidgets import QHeaderView
+from PyQt5.QtWidgets import QAbstractItemView, QHeaderView
 from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QAbstractTableModel, QThread
-from PyQt5.QtCore import QVariant, pyqtSlot, QRegExp#, QModelIndex
+from PyQt5.QtCore import QVariant, pyqtSlot, QRegExp, pyqtSlot
 from PyQt5.QtGui import QColor, QBrush
 
 #--------------------------------- class -------------------------------------
@@ -68,6 +68,10 @@ class ViMonitorTab(QWidget):
 
         self.view           = QTableView()
         self.view.setSortingEnabled(True)
+        self.view.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.view.clicked.connect(self.onClickedRow)
+        # self.view.itemSelectionChanged.connect(self.selection_changed)
+        self.view.setSelectionBehavior(QAbstractItemView.SelectRows)
         
         self.lineEdit       = QLineEdit()
         self.comboBox       = QComboBox()
@@ -124,6 +128,7 @@ class ViMonitorTab(QWidget):
     def init(self):
 
         self.view.reset()
+        
         self.loadMonitor()
         self.comboBox.clear()
         headers=['Id','IP','Пользователь', 'Имя дашборда', 'dashboard guid']
@@ -149,7 +154,13 @@ class ViMonitorTab(QWidget):
         
         for index,value in enumerate(headers):
               self.horizontalHeader.setSectionResizeMode(index, QHeaderView.ResizeToContents)
-
+#------------------- Select all------------------------
+    def onClickedRow(self, index=None):
+        # index1 = self.view.model().index(0, 0)
+        # index2 = self.view.model().index(self.view.model().rowCount()-1, 0)
+        index = self.view.selectionModel().selectedRows()[0]
+        val = str(index.data(role=Qt.DisplayRole))
+        self.targetComboBox.setCurrentText(val)
 #-----------------------------------------------------------------------------       
     def clickSendMessage(self):  
         viplatform.visiology.sendAdminMessage(self.message.text(), self.targetComboBox.currentText())
