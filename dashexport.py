@@ -180,7 +180,7 @@ class ViDashboardsExport(QWidget):
         self.worker.filesUploaded.connect(self.onRepoChanged)
 
         self.worker.filesDownloaded.connect(self.uploadLocalFolder2Platform)
-       
+        self.worker.catcherror.connect(viutils.throwError)
         self.commandInit.connect(self.worker.init)
         self.commandLoadfiles.connect(self.worker.getFiles)
         self.commandGetRepos.connect(self.worker.getRepos)
@@ -209,7 +209,7 @@ class ViDashboardsExport(QWidget):
         self.exportButton.setEnabled(True)
         self.commandGetRepos.emit()
 #-----------------------------------------------------------------------------
-    def onClickConnect(self):
+    def onClickConnect(self): 
         self.loader= viutils.LoadingGif(self)
         self.commandInit.emit(self.apiKey.text())
 #-----------------------------------------------------------------------------
@@ -329,7 +329,7 @@ class ViDashboardsExport(QWidget):
                     with open(file_path, 'rb') as fobj:
                         data=fobj.read()
                         ok,response = viplatform.visiology.sendFile('/migration/import',data)
-                        
+        self.preparePlatformDashboardTree()              
         self.loader.stopAnimation()
 #-----------------------------------------------------------------------------
     def onchangePrefix(self):

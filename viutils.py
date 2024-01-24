@@ -86,7 +86,7 @@ class WorkerGit(QObject):
             self.git = Github(key)
             self.initted.emit()
         except Exception as e:
-            throwError(str(e))
+            self.catcherror.emit(str(e))
 #------------------------------------------------------------------------------
     @Slot()        
     def getRepos(self):
@@ -94,7 +94,7 @@ class WorkerGit(QObject):
             self.repos=self.git.get_user().get_repos()
             self.gotRepos.emit()
         except Exception as e:
-            throwError(str(e))
+            self.catcherror.emit(str(e))
         
 #------------------------------------------------------------------------------        
     @Slot(str)
@@ -104,7 +104,7 @@ class WorkerGit(QObject):
             self.branches = self.repo.get_branches()
             self.gotRepoBranch.emit()
         except Exception as e:
-            throwError(str(e))
+            self.catcherror.emit(str(e))
         
 #------------------------------------------------------------------------------        
     @Slot()
@@ -127,7 +127,7 @@ class WorkerGit(QObject):
                 self.files=prepareDataFromGit(file,self.files, file)
             self.gotFiles.emit()
         except Exception as e:
-            throwError(str(e))
+            self.catcherror.emit(str(e))
 #------------------------------------------------------------------------------    
     @Slot(str,str, str)
     def uploadFiles(self,git_prefix,repo_branch, commit_comment):
@@ -164,14 +164,15 @@ class WorkerGit(QObject):
                                               content, branch=repo_branch)
             self.filesUploaded.emit()
         except Exception as e:
-            throwError(str(e))
+            self.catcherror.emit(str(e))
 #------------------------------------------------------------------------------            
     @Slot(list,str)
     def downloadFiles(self, filenames, branch):
         try:
-            shutil.rmtree(constants.VI_IMPORT_PATH)
+            shutil.rmtree(constants.VI_IMPORT_PATH, ignore_errors=True)
         except OSError as e:
-            throwError(str(e))
+            self.catcherror.emit(str(e))
+            return
         try:
             for f in filenames:
                 
@@ -182,6 +183,7 @@ class WorkerGit(QObject):
                 content_encoded = self.repo.get_contents(gitFile, ref=branch).content
                 content = base64.b64decode(content_encoded)
                 filenameDash=constants.VI_IMPORT_PATH+'\\'+zipname+'\\'+'dashboards.json'
+                print(os.path.dirname(filenameDash))
                 os.makedirs(os.path.dirname(filenameDash), exist_ok=True)
                 with open(filenameDash, 'wb') as f:
                     f.write(content)
@@ -198,7 +200,7 @@ class WorkerGit(QObject):
                     zipf.write(filenameHeader, '__header.json')
             self.filesDownloaded.emit()
         except Exception as e:
-            throwError(str(e))
+            self.catcherror.emit(str(e))
 # -----------------------class-------------------------------------------------        
 class WorkerUser(QObject):
     finished = pyqtSignal()
