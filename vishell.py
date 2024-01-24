@@ -8,10 +8,10 @@ Created on Thu Jan 18 15:31:52 2024
 import constants
 import viplatform
 from viutils import WorkerRestartServer, LoadingGif, throwError
-from PyQt5 import QtWidgets
+from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import QWidget,  QVBoxLayout, QHBoxLayout, QLabel, QGridLayout, QPushButton
-from PyQt5.QtWidgets import QLineEdit, QFrame, QScrollArea, QSpacerItem, QDialog, QDialogButtonBox
-from PyQt5.QtCore import Qt, QSize, QThread
+from PyQt5.QtWidgets import QFrame, QScrollArea, QSpacerItem, QDialog, QDialogButtonBox
+from PyQt5.QtCore import QThread
 
 
 #------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ class ScrollMessageBox(QDialog):
     def __init__(self, l):
         super().__init__()
         self.setWindowTitle("LOG")
+        self.setWindowIcon(QtGui.QIcon(constants.VI_WINDOW_ICON_PATH))
         self.centralwidgetLayout = QVBoxLayout(self)
         self.groupWidget = QWidget(self)
         self.groupLayout = QGridLayout(self.groupWidget)
