@@ -166,7 +166,7 @@ class ViDashboardsExport(QWidget):
                             stack.append(child)
 #-----------------------------------------------------------------------------                            
     def init(self):
-
+        if viplatform.visiology.hasError: return
         self.thread = QThread()
         self.worker = viutils.WorkerGit()
         self.worker.moveToThread(self.thread)

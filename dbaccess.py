@@ -63,6 +63,7 @@ class ViDbAccessTab(QWidget):
         
 #------------------------------------------------------------------------------        
     def init(self):
+        if viplatform.visiology.hasError: return
         for i in self.checkBoxList: i.deleteLater()
         self.checkBoxList=[]
         self.combo_box.clear()

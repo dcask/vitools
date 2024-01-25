@@ -132,6 +132,8 @@ class ViIdentityTab(QWidget):
         self.proxy.setFilterKeyColumn(index)
 #-----------------------------------------------------------------------------
     def init(self):
+        if viplatform.visiology.hasError: return
+        
         if self.lokiKey.text()=='':
             self.lokiKey.setText(viplatform.visiology.lokiApiKey)
         self.view.reset()
@@ -186,6 +188,9 @@ class ViIdentityTab(QWidget):
         self.thread.finished.connect(
             lambda: self.loader.stopAnimation()
         )
+        # self.worker.catcherror.connect(
+        #     lambda: self.loader.stopAnimation()
+        # )
         self.thread.finished.connect(
             lambda: self.init()
         )

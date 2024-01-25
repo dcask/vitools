@@ -48,6 +48,7 @@ class ViLicenseTab(QScrollArea):
 
 #------------------------------------------------------------------------------    
     def init(self):
+        if viplatform.visiology.hasError: return
         m=viplatform.visiology.license
         l=viplatform.visiology.usedLicenses
         print(m)

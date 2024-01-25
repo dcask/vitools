@@ -56,7 +56,8 @@ class TableModel(QAbstractTableModel):
         self.layoutChanged.emit()
 
     def columnCount(self, index):
-        return len(self._data[0])
+        #return len(self._data[0]) if len(self._data)>0 else 0
+        return len(self.hheaders)
     
     def headerData(self, section, orientation, role):           
         if role == Qt.DisplayRole:
@@ -140,7 +141,7 @@ class ViUserTab(QWidget):
         self.proxy.setFilterKeyColumn(index)
 #------------------------------------------------------------------------------    
     def init(self):
-        
+        if viplatform.visiology.hasError: return
         self.view.reset()
 
         translate={'UserName':'Логин', 'useLdap':'LDAP', 'GivenName':'Имя',

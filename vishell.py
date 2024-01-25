@@ -131,6 +131,7 @@ class ViShellTab(QWidget):
         # throwInfo(', '.join(value['details']))
 #------------------------------------------------------------------------------        
     def init(self):
+        if viplatform.visiology.hasError: return
         for i in self.services: i.deleteLater()
         self.services=[]
         while self.scrollAreaWidgetLayout.count():

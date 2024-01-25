@@ -127,7 +127,7 @@ class ViMonitorTab(QWidget):
         self.proxy.setFilterKeyColumn(index)
 #-----------------------------------------------------------------------------
     def init(self):
-
+        if viplatform.visiology.hasError: return
         self.view.reset()
         
         self.loadMonitor()

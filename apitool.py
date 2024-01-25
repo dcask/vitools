@@ -109,7 +109,7 @@ class ViApiTab(QWidget):
         # print(self.tooltip)
 #------------------------------------------------------------------------------        
     def init(self):
-        
+        if viplatform.visiology.hasError: return
         h = dict(viplatform.visiology.headers)
         h['Authorization']=h['Authorization'].replace(viplatform.visiology.userToken,"["+constants.VI_API_TOKEN_LABEL+"]")
         self.headerEdit.setText(dumps(h, indent=2))

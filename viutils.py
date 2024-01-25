@@ -207,7 +207,7 @@ class WorkerUser(QObject):
     catcherror = pyqtSignal(str)
 #------------------------------------------------------------------------------    
     def run(self):
-
+        print('run User')
         if viplatform.visiology.checkPlatform():
             viplatform.visiology.getUsers()
         if viplatform.visiology.hasError:
@@ -234,7 +234,7 @@ class WorkerToken(QObject):
     catcherror = pyqtSignal(str)
 #------------------------------------------------------------------------------
     def run(self):
-
+        print('run Token')
         if viplatform.visiology.checkPlatform():
             viplatform.visiology.getToken()
         if viplatform.visiology.hasError:
@@ -246,7 +246,7 @@ class WorkerLicence(QObject):
     catcherror = pyqtSignal(str)
 
     def run(self):
-
+        print('run Licence')
         if viplatform.visiology.checkPlatform():
             viplatform.visiology.getLicense()
         if viplatform.visiology.hasError:
@@ -261,15 +261,18 @@ class WorkerLoki(QObject):
         self.mode=mode
 #------------------------------------------------------------------------------
     def run(self):
-
+        print('run Loki')
         if viplatform.visiology.checkPlatform():
             viplatform.visiology.getDashboards()
-            if self.mode!='ident':
-                viplatform.visiology.getLokiDashboardRequests()
-            if self.mode!='dash':
-                viplatform.visiology.getLokiEntranceRequests()
-        if viplatform.visiology.hasError:
-            self.catcherror.emit(viplatform.visiology.errorText) 
+            if viplatform.visiology.hasError:
+                self.catcherror.emit(viplatform.visiology.errorText) 
+            else:
+                if self.mode!='ident':
+                    viplatform.visiology.getLokiDashboardRequests()
+                if self.mode!='dash':
+                    viplatform.visiology.getLokiEntranceRequests()
+                if viplatform.visiology.hasError:
+                    self.catcherror.emit(viplatform.visiology.errorText) 
         self.finished.emit()
 #------------------class------------------------------------------------------        
 class LoadingGif(QWidget): 
