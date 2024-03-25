@@ -72,7 +72,6 @@ class ViLokiTab(QWidget):
         self.since      = QSpinBox()
         self.since.setValue(24)
         
-        #eyJrIjoiVjZOakhMV0JqYjRrNGxUVDFlWVRwUkRqVVl0OFBIamUiLCJuIjoiZGNhc2tsb2tpIiwiaWQiOjF9
         self.view           = QTableView()
         self.view.setSortingEnabled(True)
         
