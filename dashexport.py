@@ -67,7 +67,6 @@ class ViDashboardsExport(QWidget):
         self.apitokenLabel.setText(constants.VI_EXPORT_KEY_LABEL)
         self.apiKey = QLineEdit()
         # self.apiKey.setText("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")
-        #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
         self.connectButton = QPushButton(constants.VI_IMPORT_CONNECT_BUTTON_LABEL)
         self.connectButton.clicked.connect(self.onClickConnect)
         self.connectButton.setStyleSheet('QPushButton {background-color: #dd556d}')
