@@ -9,21 +9,18 @@ import constants
 import viplatform
 from PyQt5.QtWidgets import QTextEdit, QFormLayout, QLabel, QCheckBox, QScrollArea,QGroupBox
 from PyQt5.QtCore import Qt
-
+#------------------------------------------------------------------------------
 class ViLicenseTab(QScrollArea):
     def __init__(self, parent): 
         super(QScrollArea, self).__init__(parent) 
         
-        # self.widgetLayout= QVBoxLayout()
         self.groupBox = QGroupBox(self)
         self.setWidget(self.groupBox)
-        # self.widgetLayout.addWidget(self.groupBox)
+
         self.formLayout = QFormLayout(self.groupBox)
-        # self.groupBox.setLayout(self.formLayout)
-        # self.scroll_area = QScrollArea()
+
         self.setWidgetResizable(True)
-        # self.scroll_area.setWidget(self.groupBox)
-        # self.setFixedHeight(200)
+
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         
@@ -49,28 +46,22 @@ class ViLicenseTab(QScrollArea):
         self.formLayout.addRow(constants.VI_LICENSE_OTHER_LABEL, self.otherUsers)
         self.formLayout.addRow(constants.VI_LICENSE_TOTAL_LABEL, self.totalUsers)
 
-        # self.setLayout(self.formLayout)
-        # GET https://example.visiology.su/admin/api/generalSettings
-    # def resizeEvent(self, event):
-    #     print("win",self.window().frameGeometry().height())
-    #     print("scroll",self.window().frameGeometry().height())
-    #     # self.groupBox.setFixedHeight(self.window().frameGeometry().height())
-    #     # self.setFixedHeight(self.window().frameGeometry().height())
-    #     # self.setMaximumHeight(self.window().frameGeometry().height())
-    #     # self.setGeometry(self.window().frameGeometry())
-    #     # self.update() 
-    #     # self.resize(self.window().size())
-    #     super().resizeEvent(event)
-    
+#------------------------------------------------------------------------------    
     def init(self):
+        if viplatform.visiology.hasError: return
         m=viplatform.visiology.license
         l=viplatform.visiology.usedLicenses
-        
-        self.adminUsers.setText(str(l["Администратор"])+constants.VI_LICENSE_LIMIT_LABEL+str(m['adminsNumber']))
-        self.editorUsers.setText(str(l["Редактор"])+constants.VI_LICENSE_LIMIT_LABEL+str(m["editorsNumber"]))
-        self.sfUsers.setText(str(l["Оператор ввода"])+constants.VI_LICENSE_LIMIT_LABEL+str(m["dcUsersNumber"]))
-        self.otherUsers.setText(str(l["Остальные пользователи"])+constants.VI_LICENSE_LIMIT_LABEL+str(m["otherUsersNumber"]))
-        self.totalUsers.setText(str(l["Всего"]))
+        print(m)
+        if 'adminsNumber' in m and 'Администратор' in l:
+            self.adminUsers.setText(str(l["Администратор"])+constants.VI_LICENSE_LIMIT_LABEL+str(m['adminsNumber']))
+        if 'editorsNumber' in m and 'Редактор' in l:
+            self.editorUsers.setText(str(l["Редактор"])+constants.VI_LICENSE_LIMIT_LABEL+str(m["editorsNumber"]))
+        if 'dcUsersNumber' in m and 'Оператор ввода' in l:
+            self.sfUsers.setText(str(l["Оператор ввода"])+constants.VI_LICENSE_LIMIT_LABEL+str(m["dcUsersNumber"]))
+        if 'otherUsersNumber' in m and 'Остальные пользователи' in l:
+            self.otherUsers.setText(str(l["Остальные пользователи"])+constants.VI_LICENSE_LIMIT_LABEL+str(m["otherUsersNumber"]))
+        if 'Всего' in l:
+            self.totalUsers.setText(str(l["Всего"]))
         
         ok, response = viplatform.visiology.sendRequest('GET', '/admin/api/generalSettings', viplatform.visiology.headers)
         if ok:

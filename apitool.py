@@ -7,28 +7,24 @@ Created on Tue Dec  5 22:19:05 2023
 
 import constants
 import viplatform
-# from viutils import LoadingGif
 from pandas import DataFrame
 
-# from PyQt5.QtCore import pyqtSignal
 from viutils import throwError
 from json import loads, dumps, dump, load
 from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QLineEdit, QPushButton
 from PyQt5.QtWidgets import QComboBox, QTextEdit, QFileDialog
 from PyQt5.QtWidgets import QPlainTextEdit, QAction, QMenu
-from PyQt5.QtCore import Qt#, QThread
-
+from PyQt5.QtCore import Qt
+#------------------------------------------------------------------------------
 class ViApiTab(QWidget):
     def __init__(self, parent): 
         super(QWidget, self).__init__(parent)
-        # self.finished = pyqtSignal()
         
         self.comboBox       = QComboBox()
         self.comboBox.setEditable(True)
         self.comboBox.currentTextChanged.connect(self.on_combobox_changed)
         self.comboType       = QComboBox()
         self.comboType.addItems(['GET','POST','PUT','DELETE'])
-        # self.comboBox.addItems(['Версия викуба','Тест'])
 
         self.endpointEdit   = QLineEdit()
         self.labelToken  = QLabel()
@@ -49,12 +45,11 @@ class ViApiTab(QWidget):
         self.export = QAction(self.tr('xls'), self)
         self.export.triggered.connect(self.exportAction)
         
-        # self.headerEdit.setReadOnly(True)
         self.tokenEdit.setReadOnly(True)
         self.outputEdit.setReadOnly(True)
-        #buttons
+
         self.refreshButton = QPushButton(constants.VI_API_REFRESH_BUTTON)
-        # self.exportButton = QPushButton(constants.VI_API_EXPORT_BUTTON)
+
         self.sendButton = QPushButton(constants.VI_API_SEND_BUTTON)
         self.saveButton = QPushButton(constants.VI_API_SAVE_BUTTON)
         
@@ -65,7 +60,6 @@ class ViApiTab(QWidget):
         self.sendButton.setStyleSheet('QPushButton {background-color: #95f18b}')
         self.saveButton.setStyleSheet('QPushButton {background-color: #f5b25c}')
         self.gridLayout = QGridLayout(self)
-        # column 0
         
         self.gridLayout.addWidget(self.comboType,               0, 0)
         
@@ -77,21 +71,17 @@ class ViApiTab(QWidget):
         self.gridLayout.addWidget(self.labelBody,               6, 0)
         self.gridLayout.addWidget(self.bodyEdit,                7, 0)
         
-        #column 1
         self.gridLayout.addWidget(self.comboBox,                0, 1, 1, 1)
         self.gridLayout.addWidget(self.saveButton,              0, 2, 1, 1)
         self.gridLayout.addWidget(self.sendButton,              1, 1, 1, 1)
         self.gridLayout.addWidget(self.labelOutput,             2, 1, 1, 1)
         self.gridLayout.addWidget(self.outputEdit,              3, 1, 5, 3)
-        # self.gridLayout.addWidget(self.exportButton,            7, 2, 1, 1)
-        
-        #column 2
+
         
         self.gridLayout.addWidget(self.refreshButton,           1, 2, 1, 1)
         
         self.gridLayout.setColumnStretch(0, 2)
         self.gridLayout.setColumnStretch(1, 1)
-        # self.gridLayout.setColumnStretch(1, 1)
         
         self.gridLayout.setRowStretch(0, 1)
         self.gridLayout.setRowStretch(1, 1)
@@ -109,52 +99,34 @@ class ViApiTab(QWidget):
             pass
         with open('vitools-data.json','r') as f:
             try:
+                items=['',]
+                
                 self.tooltip=load(f)
-                self.comboBox.addItems([x for x in self.tooltip])
+                for x in self.tooltip : items.append(x)
+                self.comboBox.addItems(items)
             except :
                 self.tooltip={}
         # print(self.tooltip)
-        
+#------------------------------------------------------------------------------        
     def init(self):
-        
+        if viplatform.visiology.hasError: return
         h = dict(viplatform.visiology.headers)
         h['Authorization']=h['Authorization'].replace(viplatform.visiology.userToken,"["+constants.VI_API_TOKEN_LABEL+"]")
         self.headerEdit.setText(dumps(h, indent=2))
         self.tokenEdit.setText(viplatform.visiology.userToken)
         self.bodyEdit.setPlainText("body")
-        
+#------------------------------------------------------------------------------        
     def clickRefresh(self):
         viplatform.visiology.getToken()
         self.tokenEdit.setText(str(viplatform.visiology.userToken))
-        
+#------------------------------------------------------------------------------        
     def clickSend(self):
-        # self.loader= LoadingGif(self.parent)
         
-        # self.thread = QThread()
-        # # self.worker= viutils.WorkerToken()
-        # self.loader.moveToThread(self.thread)
-                
-        # self.thread.started.connect(self.loader.show)
-        
-        
-        # self.finished.connect(self.thread.quit)
-        # self.finished.connect(self.workerToken.deleteLater)
-        # self.catcherror.connect(viutils.throwError)
-        
-          
-        # self.thread.finished.connect(self.thread.deleteLater)
-        # self.thread.start()
         self.sendApiRequest()
-        
-        # self.thread.finished.connect(
-        #     lambda: self.viTabPanel.init()
-        # )
-        # self.thread.finished.connect(
-        #     lambda: self.loader.stopAnimation()
-        # )
-        # self.thread.quit()
+#------------------------------------------------------------------------------        
     def refreshView(self):
-        self.tokenEdit.setText(viplatform.visiology.userToken)    
+        self.tokenEdit.setText(viplatform.visiology.userToken)   
+#------------------------------------------------------------------------------        
     def sendApiRequest(self):
         
         # catcherror = pyqtSignal(str)
@@ -177,8 +149,7 @@ class ViApiTab(QWidget):
                 
             else:
                 self.outputEdit.setText(response.text)
-            # self.finished.emit()
-        
+#------------------------------------------------------------------------------        
     def clickSave(self):
              
         data=self.grabData()
@@ -191,11 +162,11 @@ class ViApiTab(QWidget):
             self.comboBox.addItems([name])
             with open('vitools-data.json', 'w', encoding='utf-8') as f:
                 dump(self.tooltip, f, ensure_ascii=False, indent=4)
-            
+#------------------------------------------------------------------------------            
     def grabData(self):
         body={}
         try:
-            if self.comboType.currentText() in ['PUT','POST']:
+            if self.comboType.currentText() in ['PUT','POST','DELETE']:
                 body=loads(self.bodyEdit.toPlainText() )   
         except Exception as e:
             throwError(constants.VI_API_BODY_ERROR+str(e))
@@ -216,7 +187,7 @@ class ViApiTab(QWidget):
               "CORRECT":True}
         self.refreshView()
         return data
-    
+#------------------------------------------------------------------------------    
     def on_combobox_changed(self, value):
         if value in self.tooltip:
             data=self.tooltip[value]
@@ -227,12 +198,12 @@ class ViApiTab(QWidget):
             self.headerEdit.setText(dumps(h, indent=2))
             self.comboType.setCurrentText(data['METHOD'])
             self.bodyEdit.setPlainText(dumps(b, indent=2))
-            
+#------------------------------------------------------------------------------            
     def context_menu(self, pos):
        menu = QMenu(self)
        menu.addAction(self.export)
        menu.exec_(self.outputEdit.mapToGlobal(pos))
-       
+#------------------------------------------------------------------------------       
     def exportAction(self):
         
         options = QFileDialog.Options()
@@ -248,4 +219,7 @@ class ViApiTab(QWidget):
             if isinstance(json_out, dict):
                 df = DataFrame.from_dict(loads(self.outputEdit.toPlainText()),orient="index")
             if not df.empty:
-                df.to_excel(fileName, sheet_name="Sheet1", index=False, engine='openpyxl')
+                try:
+                    df.to_excel(fileName, sheet_name="Sheet1", index=False, engine='openpyxl')
+                except Exception as e:
+                    throwError(str(e))
